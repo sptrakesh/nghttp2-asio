@@ -37,14 +37,11 @@
 #ifndef ASIO_IO_SERVICE_POOL_H
 #define ASIO_IO_SERVICE_POOL_H
 
-#include "nghttp2_config.h"
-
 #include <vector>
-#include <memory>
 #include <future>
 
 #include <boost/noncopyable.hpp>
-#include <boost/thread.hpp>
+#include <boost/asio/io_service.hpp>
 
 #include <nghttp2/asio_http2.h>
 

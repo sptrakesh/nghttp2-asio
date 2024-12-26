@@ -25,10 +25,9 @@
 #ifndef ASIO_COMMON_H
 #define ASIO_COMMON_H
 
-#include "nghttp2_config.h"
-
 #include <string>
 
+#include <boost/asio/ip/tcp.hpp>
 #include <nghttp2/asio_http2.h>
 
 #include "util.h"

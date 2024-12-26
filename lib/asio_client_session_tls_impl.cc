@@ -25,6 +25,8 @@
 #include "asio_client_session_tls_impl.h"
 #include "asio_common.h"
 
+#include <boost/asio/connect.hpp>
+
 namespace nghttp2 {
 namespace asio_http2 {
 namespace client {
@@ -75,7 +77,7 @@ void session_tls_impl::start_connect(tcp::resolver::iterator endpoint_it) {
 
               if (!tls_h2_negotiated(self->socket_)) {
                 self->not_connected(make_error_code(
-                    NGHTTP2_ASIO_ERR_TLS_NO_APP_PROTO_NEGOTIATED));
+                    nghttp2_asio_error::NGHTTP2_ASIO_ERR_TLS_NO_APP_PROTO_NEGOTIATED));
                 return;
               }
 

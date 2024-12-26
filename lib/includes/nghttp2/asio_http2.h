@@ -33,7 +33,6 @@
 #include <map>
 
 #include <boost/system/error_code.hpp>
-#include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
 #include <nghttp2/nghttp2.h>
@@ -71,12 +70,12 @@ struct uri_ref {
 
 // Callback function when data is arrived.  EOF is indicated by
 // passing 0 to the second parameter.
-typedef std::function<void(const uint8_t *, std::size_t)> data_cb;
-typedef std::function<void(void)> void_cb;
-typedef std::function<void(const boost::system::error_code &ec)> error_cb;
+using data_cb = std::function<void(const uint8_t*, std::size_t)>;
+using void_cb = std::function<void()>;
+using error_cb = std::function<void(const boost::system::error_code& ec)>;
 // Callback function when request and response are finished.  The
 // parameter indicates the cause of closure.
-typedef std::function<void(uint32_t)> close_cb;
+using close_cb = std::function<void(uint32_t)>;
 
 // Callback function to generate response body.  This function has the
 // same semantics with nghttp2_data_source_read_callback.  Just source
@@ -89,9 +88,7 @@ typedef std::function<void(uint32_t)> close_cb;
 // are not available right now, return NGHTTP2_ERR_DEFERRED.  In case
 // of the error and request/response must be closed, return
 // NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE.
-typedef std::function<ssize_t(uint8_t *buf, std::size_t len,
-                              uint32_t *data_flags)>
-    generator_cb;
+using generator_cb = std::function<ssize_t(uint8_t* buf, std::size_t len, uint32_t* data_flags)>;
 
 // Convenient function to create function to read file denoted by
 // |path|.  This can be passed to response::end().
@@ -123,7 +120,7 @@ boost::system::error_code host_service_from_uri(boost::system::error_code &ec,
                                                 std::string &service,
                                                 const std::string &uri);
 
-enum nghttp2_asio_error {
+enum class nghttp2_asio_error : uint_fast8_t {
   NGHTTP2_ASIO_ERR_NO_ERROR = 0,
   NGHTTP2_ASIO_ERR_TLS_NO_APP_PROTO_NEGOTIATED = 1,
 };

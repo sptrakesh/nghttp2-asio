@@ -25,7 +25,6 @@
 #include "asio_common.h"
 
 #include <fcntl.h>
-#include <memory>
 
 #include "util.h"
 #include "template.h"
@@ -46,17 +45,18 @@ const boost::system::error_category &nghttp2_category() noexcept {
 }
 
 boost::system::error_code make_error_code(nghttp2_error ev) {
-  return boost::system::error_code(static_cast<int>(ev), nghttp2_category());
+  return boost::system::error_code(ev, nghttp2_category());
 }
 
 class nghttp2_asio_category_impl : public boost::system::error_category {
 public:
   const char *name() const noexcept { return "nghttp2_asio"; }
   std::string message(int ev) const {
-    switch (ev) {
-    case NGHTTP2_ASIO_ERR_NO_ERROR:
+    auto er = static_cast<nghttp2_asio_error>( ev );
+    switch (er) {
+    case nghttp2_asio_error::NGHTTP2_ASIO_ERR_NO_ERROR:
       return "no error";
-    case NGHTTP2_ASIO_ERR_TLS_NO_APP_PROTO_NEGOTIATED:
+    case nghttp2_asio_error::NGHTTP2_ASIO_ERR_TLS_NO_APP_PROTO_NEGOTIATED:
       return "tls: no application protocol negotiated";
     default:
       return "unknown";

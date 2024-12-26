@@ -54,7 +54,7 @@ include(GNUInstallDirs)
 
 # Auto-detection of features that can be toggled
 find_package(OpenSSL 1.0.1)
-find_package(Libnghttp2 1.43.0)
+find_package(Libnghttp2 1.51.0)
 
 include(CMakeOptions.txt)
 
@@ -134,6 +134,10 @@ else()
   set(OPENSSL_LIBRARIES     "")
 endif()
 
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME ON)
+set(Boost_USE_MULTITHREADED ON)
+set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(Boost 1.54.0 REQUIRED system thread)
 
 # Checks for header files.
