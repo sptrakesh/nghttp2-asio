@@ -27,7 +27,7 @@
 
 #include <nghttp2/asio_http2.h>
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace nghttp2 {
@@ -115,8 +115,8 @@ public:
   // Returns status code.
   unsigned int status_code() const;
 
-  // Returns boost::asio::io_service this response is running on.
-  boost::asio::io_service &io_service() const;
+  // Returns boost::asio::io_context this response is running on.
+  boost::asio::io_context &io_context() const;
 
   // Application must not call this directly.
   response_impl &impl() const;
@@ -213,9 +213,9 @@ public:
   // Join on http2 server and wait for it to fully stop
   void join();
 
-  // Get access to the io_service objects.
-  const std::vector<std::shared_ptr<boost::asio::io_service>> &
-  io_services() const;
+  // Get access to the io_context objects.
+  const std::vector<std::shared_ptr<boost::asio::io_context>> &
+  io_contexts() const;
 
   // Returns a vector with the ports in use
   std::vector<int> ports() const;

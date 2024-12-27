@@ -52,10 +52,10 @@
 #include "template.h"
 
 #if BOOST_VERSION >= 107000
-#  define GET_IO_SERVICE(s)                                                    \
+#  define GET_io_context(s)                                                    \
     ((boost::asio::io_context &)(s).get_executor().context())
 #else
-#  define GET_IO_SERVICE(s) ((s).get_io_service())
+#  define GET_io_context(s) ((s).get_io_context())
 #endif
 
 namespace nghttp2 {
@@ -69,7 +69,7 @@ template <typename socket_type>
 class connection : public std::enable_shared_from_this<connection<socket_type>>,
                    private boost::noncopyable {
 public:
-  /// Construct a connection with the given io_service.
+  /// Construct a connection with the given io_context.
   template <typename... SocketArgs>
   explicit connection(
       serve_mux &mux,
@@ -78,7 +78,7 @@ public:
       SocketArgs &&...args)
       : socket_(std::forward<SocketArgs>(args)...),
         mux_(mux),
-        deadline_(GET_IO_SERVICE(socket_)),
+        deadline_(GET_io_context(socket_)),
         tls_handshake_timeout_(tls_handshake_timeout),
         read_timeout_(read_timeout),
         writing_(false),
@@ -89,7 +89,7 @@ public:
     boost::system::error_code ec;
 
     handler_ = std::make_shared<http2_handler>(
-        GET_IO_SERVICE(socket_), socket_.lowest_layer().remote_endpoint(ec),
+        GET_io_context(socket_), socket_.lowest_layer().remote_endpoint(ec),
         [this]() { do_write(); }, mux_);
     if (handler_->start() != 0) {
       stop();

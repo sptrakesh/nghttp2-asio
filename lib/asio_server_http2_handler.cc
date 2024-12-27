@@ -234,12 +234,12 @@ int on_frame_not_send_callback(nghttp2_session *session,
 }
 } // namespace
 
-http2_handler::http2_handler(boost::asio::io_service &io_service,
+http2_handler::http2_handler(boost::asio::io_context &io_context,
                              boost::asio::ip::tcp::endpoint ep,
                              connection_write writefun, serve_mux &mux)
     : writefun_(writefun),
       mux_(mux),
-      io_service_(io_service),
+      io_context_(io_context),
       remote_ep_(ep),
       session_(nullptr),
       buf_(nullptr),
@@ -415,7 +415,7 @@ void http2_handler::signal_write() {
   if (!inside_callback_ && !write_signaled_) {
     write_signaled_ = true;
     auto self = shared_from_this();
-    io_service_.post([self]() { self->initiate_write(); });
+    io_context_.post([self]() { self->initiate_write(); });
   }
 }
 
@@ -478,7 +478,7 @@ response *http2_handler::push_promise(boost::system::error_code &ec,
   return &promised_strm->response();
 }
 
-boost::asio::io_service &http2_handler::io_service() { return io_service_; }
+boost::asio::io_context &http2_handler::io_context() { return io_context_; }
 
 const boost::asio::ip::tcp::endpoint &http2_handler::remote_endpoint() {
   return remote_ep_;

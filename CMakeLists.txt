@@ -32,6 +32,10 @@ set(LT_CURRENT  0)
 set(LT_REVISION 0)
 set(LT_AGE      0)
 
+if (POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 

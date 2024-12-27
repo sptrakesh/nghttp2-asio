@@ -25,7 +25,7 @@
 // We wrote this code based on the original code which has the
 // following license:
 //
-// io_service_pool.cpp
+// io_context_pool.cpp
 // ~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -39,28 +39,28 @@ namespace nghttp2 {
 
 namespace asio_http2 {
 
-io_service_pool::io_service_pool(std::size_t pool_size) : next_io_service_(0) {
+io_context_pool::io_context_pool(std::size_t pool_size) : next_io_context_(0) {
   if (pool_size == 0) {
-    throw std::runtime_error("io_service_pool size is 0");
+    throw std::runtime_error("io_context_pool size is 0");
   }
 
-  // Give all the io_services work to do so that their run() functions will not
+  // Give all the io_contexts work to do so that their run() functions will not
   // exit until they are explicitly stopped.
   for (std::size_t i = 0; i < pool_size; ++i) {
-    auto io_service = std::make_shared<boost::asio::io_service>();
-    auto work = std::make_shared<boost::asio::io_service::work>(*io_service);
-    io_services_.push_back(io_service);
+    auto io_context = std::make_shared<boost::asio::io_context>();
+    auto work = std::make_shared<boost::asio::io_context::work>(*io_context);
+    io_contexts_.push_back(io_context);
     work_.push_back(work);
   }
 }
 
-void io_service_pool::run(bool asynchronous) {
-  // Create a pool of threads to run all of the io_services.
-  for (std::size_t i = 0; i < io_services_.size(); ++i) {
+void io_context_pool::run(bool asynchronous) {
+  // Create a pool of threads to run all of the io_contexts.
+  for (std::size_t i = 0; i < io_contexts_.size(); ++i) {
     futures_.push_back(std::async(std::launch::async,
-                                  (size_t(boost::asio::io_service::*)(void)) &
-                                      boost::asio::io_service::run,
-                                  io_services_[i]));
+                                  (size_t(boost::asio::io_context::*)(void)) &
+                                      boost::asio::io_context::run,
+                                  io_contexts_[i]));
   }
 
   if (!asynchronous) {
@@ -68,38 +68,38 @@ void io_service_pool::run(bool asynchronous) {
   }
 }
 
-void io_service_pool::join() {
+void io_context_pool::join() {
   // Wait for all threads in the pool to exit.
   for (auto &fut : futures_) {
     fut.get();
   }
 }
 
-void io_service_pool::force_stop() {
-  // Explicitly stop all io_services.
-  for (auto &iosv : io_services_) {
+void io_context_pool::force_stop() {
+  // Explicitly stop all io_contexts.
+  for (auto &iosv : io_contexts_) {
     iosv->stop();
   }
 }
 
-void io_service_pool::stop() {
+void io_context_pool::stop() {
   // Destroy all work objects to signals end of work
   work_.clear();
 }
 
-boost::asio::io_service &io_service_pool::get_io_service() {
-  // Use a round-robin scheme to choose the next io_service to use.
-  auto &io_service = *io_services_[next_io_service_];
-  ++next_io_service_;
-  if (next_io_service_ == io_services_.size()) {
-    next_io_service_ = 0;
+boost::asio::io_context &io_context_pool::get_io_context() {
+  // Use a round-robin scheme to choose the next io_context to use.
+  auto &io_context = *io_contexts_[next_io_context_];
+  ++next_io_context_;
+  if (next_io_context_ == io_contexts_.size()) {
+    next_io_context_ = 0;
   }
-  return io_service;
+  return io_context;
 }
 
-const std::vector<std::shared_ptr<boost::asio::io_service>> &
-io_service_pool::io_services() const {
-  return io_services_;
+const std::vector<std::shared_ptr<boost::asio::io_context>> &
+io_context_pool::io_contexts() const {
+  return io_contexts_;
 }
 
 } // namespace asio_http2

@@ -55,7 +55,7 @@ libnghttp2_asio_la_SOURCES = \
 	tls.h \
 	timegm.c timegm.h \
 	asio_common.cc asio_common.h \
-	asio_io_service_pool.cc asio_io_service_pool.h \
+	asio_io_context_pool.cc asio_io_service_pool.h \
 	asio_server_http2.cc \
 	asio_server_http2_impl.cc asio_server_http2_impl.h \
 	asio_server.cc asio_server.h \

@@ -26,7 +26,7 @@
 #define ASIO_HTTP2_CLIENT_H
 
 #include <nghttp2/asio_http2.h>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace nghttp2 {
@@ -149,23 +149,23 @@ public:
   // Starts HTTP/2 session by connecting to |host| and |service|
   // (e.g., "80") using clear text TCP connection with connect timeout
   // 60 seconds.
-  session(boost::asio::io_service &io_service, const std::string &host,
+  session(boost::asio::io_context &io_context, const std::string &host,
           const std::string &service);
 
   // Same as previous but with pegged local endpoint
-  session(boost::asio::io_service &io_service,
+  session(boost::asio::io_context &io_context,
           const boost::asio::ip::tcp::endpoint &local_endpoint,
           const std::string &host, const std::string &service);
 
   // Starts HTTP/2 session by connecting to |host| and |service|
   // (e.g., "80") using clear text TCP connection with given connect
   // timeout.
-  session(boost::asio::io_service &io_service, const std::string &host,
+  session(boost::asio::io_context &io_context, const std::string &host,
           const std::string &service,
           const boost::posix_time::time_duration &connect_timeout);
 
   // Same as previous but with pegged local endpoint
-  session(boost::asio::io_service &io_service,
+  session(boost::asio::io_context &io_context,
           const boost::asio::ip::tcp::endpoint &local_endpoint,
           const std::string &host, const std::string &service,
           const boost::posix_time::time_duration &connect_timeout);
@@ -173,14 +173,14 @@ public:
   // Starts HTTP/2 session by connecting to |host| and |service|
   // (e.g., "443") using encrypted SSL/TLS connection with connect
   // timeout 60 seconds.
-  session(boost::asio::io_service &io_service,
+  session(boost::asio::io_context &io_context,
           boost::asio::ssl::context &tls_context, const std::string &host,
           const std::string &service);
 
   // Starts HTTP/2 session by connecting to |host| and |service|
   // (e.g., "443") using encrypted SSL/TLS connection with given
   // connect timeout.
-  session(boost::asio::io_service &io_service,
+  session(boost::asio::io_context &io_context,
           boost::asio::ssl::context &tls_context, const std::string &host,
           const std::string &service,
           const boost::posix_time::time_duration &connect_timeout);
@@ -203,8 +203,8 @@ public:
   // Shutdowns connection.
   void shutdown() const;
 
-  // Returns underlying io_service object.
-  boost::asio::io_service &io_service() const;
+  // Returns underlying io_context object.
+  boost::asio::io_context &io_context() const;
 
   // Submits request to server using |method| (e.g., "GET"), |uri|
   // (e.g., "http://localhost/") and optionally additional header

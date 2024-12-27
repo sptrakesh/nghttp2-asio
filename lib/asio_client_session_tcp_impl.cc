@@ -29,17 +29,17 @@ namespace asio_http2 {
 namespace client {
 
 session_tcp_impl::session_tcp_impl(
-    boost::asio::io_service &io_service, const std::string &host,
+    boost::asio::io_context &io_context, const std::string &host,
     const std::string &service,
     const boost::posix_time::time_duration &connect_timeout)
-    : session_impl(io_service, connect_timeout), socket_(io_service) {}
+    : session_impl(io_context, connect_timeout), socket_(io_context) {}
 
 session_tcp_impl::session_tcp_impl(
-    boost::asio::io_service &io_service,
+    boost::asio::io_context &io_context,
     const boost::asio::ip::tcp::endpoint &local_endpoint,
     const std::string &host, const std::string &service,
     const boost::posix_time::time_duration &connect_timeout)
-    : session_impl(io_service, connect_timeout), socket_(io_service) {
+    : session_impl(io_context, connect_timeout), socket_(io_context) {
   socket_.open(local_endpoint.protocol());
   boost::asio::socket_base::reuse_address option(true);
   socket_.set_option(option);

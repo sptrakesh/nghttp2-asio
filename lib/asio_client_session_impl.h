@@ -43,7 +43,7 @@ using boost::asio::ip::tcp;
 
 class session_impl : public std::enable_shared_from_this<session_impl> {
 public:
-  session_impl(boost::asio::io_service &io_service,
+  session_impl(boost::asio::io_context &io_context,
                const boost::posix_time::time_duration &connect_timeout);
   virtual ~session_impl();
 
@@ -84,7 +84,7 @@ public:
 
   void shutdown();
 
-  boost::asio::io_service &io_service();
+  boost::asio::io_context &io_context();
 
   void signal_write();
 
@@ -112,7 +112,7 @@ private:
   void start_ping();
   void handle_ping(const boost::system::error_code &ec);
 
-  boost::asio::io_service &io_service_;
+  boost::asio::io_context &io_context_;
   tcp::resolver resolver_;
 
   std::map<int32_t, std::unique_ptr<stream>> streams_;

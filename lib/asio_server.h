@@ -63,7 +63,7 @@ using ssl_socket = boost::asio::ssl::stream<tcp::socket>;
 
 class server : private boost::noncopyable {
 public:
-  explicit server(std::size_t io_service_pool_size,
+  explicit server(std::size_t io_context_pool_size,
                   const boost::posix_time::time_duration &tls_handshake_timeout,
                   const boost::posix_time::time_duration &read_timeout);
 
@@ -75,9 +75,9 @@ public:
   void join();
   void stop();
 
-  /// Get access to all io_service objects.
-  const std::vector<std::shared_ptr<boost::asio::io_service>> &
-  io_services() const;
+  /// Get access to all io_context objects.
+  const std::vector<std::shared_ptr<boost::asio::io_context>> &
+  io_contexts() const;
 
   /// Returns a vector with all the acceptors ports in use.
   const std::vector<int> ports() const;
@@ -95,9 +95,9 @@ private:
                                             const std::string &port,
                                             int backlog);
 
-  /// The pool of io_service objects used to perform asynchronous
+  /// The pool of io_context objects used to perform asynchronous
   /// operations.
-  io_service_pool io_service_pool_;
+  io_context_pool io_context_pool_;
 
   /// Acceptor used to listen for incoming connections.
   std::vector<tcp::acceptor> acceptors_;

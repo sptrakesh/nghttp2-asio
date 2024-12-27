@@ -32,10 +32,10 @@ namespace asio_http2 {
 namespace client {
 
 session_tls_impl::session_tls_impl(
-    boost::asio::io_service &io_service, boost::asio::ssl::context &tls_ctx,
+    boost::asio::io_context &io_context, boost::asio::ssl::context &tls_ctx,
     const std::string &host, const std::string &service,
     const boost::posix_time::time_duration &connect_timeout)
-    : session_impl(io_service, connect_timeout), socket_(io_service, tls_ctx) {
+    : session_impl(io_context, connect_timeout), socket_(io_context, tls_ctx) {
   // this callback setting is no effect is
   // ssl::context::set_verify_mode(boost::asio::ssl::verify_peer) is
   // not used, which is what we want.

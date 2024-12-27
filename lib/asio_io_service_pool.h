@@ -25,7 +25,7 @@
 // We wrote this code based on the original code which has the
 // following license:
 //
-// io_service_pool.hpp
+// io_context_pool.hpp
 // ~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
@@ -34,14 +34,14 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef ASIO_IO_SERVICE_POOL_H
-#define ASIO_IO_SERVICE_POOL_H
+#ifndef ASIO_io_context_POOL_H
+#define ASIO_io_context_POOL_H
 
 #include <vector>
 #include <future>
 
 #include <boost/noncopyable.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 
 #include <nghttp2/asio_http2.h>
 
@@ -49,42 +49,42 @@ namespace nghttp2 {
 
 namespace asio_http2 {
 
-/// A pool of io_service objects.
-class io_service_pool : private boost::noncopyable {
+/// A pool of io_context objects.
+class io_context_pool : private boost::noncopyable {
 public:
-  /// Construct the io_service pool.
-  explicit io_service_pool(std::size_t pool_size);
+  /// Construct the io_context pool.
+  explicit io_context_pool(std::size_t pool_size);
 
-  /// Run all io_service objects in the pool.
+  /// Run all io_context objects in the pool.
   void run(bool asynchronous = false);
 
-  /// Stop all io_service objects in the pool.
+  /// Stop all io_context objects in the pool.
   void force_stop();
 
   /// Destroy all work objects to signals end of work
   void stop();
 
-  /// Join on all io_service objects in the pool.
+  /// Join on all io_context objects in the pool.
   void join();
 
-  /// Get an io_service to use.
-  boost::asio::io_service &get_io_service();
+  /// Get an io_context to use.
+  boost::asio::io_context &get_io_context();
 
-  /// Get access to all io_service objects.
-  const std::vector<std::shared_ptr<boost::asio::io_service>> &
-  io_services() const;
+  /// Get access to all io_context objects.
+  const std::vector<std::shared_ptr<boost::asio::io_context>> &
+  io_contexts() const;
 
 private:
-  /// The pool of io_services.
-  std::vector<std::shared_ptr<boost::asio::io_service>> io_services_;
+  /// The pool of io_contexts.
+  std::vector<std::shared_ptr<boost::asio::io_context>> io_contexts_;
 
-  /// The work that keeps the io_services running.
-  std::vector<std::shared_ptr<boost::asio::io_service::work>> work_;
+  /// The work that keeps the io_contexts running.
+  std::vector<std::shared_ptr<boost::asio::io_context::work>> work_;
 
-  /// The next io_service to use for a connection.
-  std::size_t next_io_service_;
+  /// The next io_context to use for a connection.
+  std::size_t next_io_context_;
 
-  /// Futures to all the io_service objects
+  /// Futures to all the io_context objects
   std::vector<std::future<std::size_t>> futures_;
 };
 
@@ -92,4 +92,4 @@ private:
 
 } // namespace nghttp2
 
-#endif // ASIO_IO_SERVICE_POOL_H
+#endif // ASIO_io_context_POOL_H
