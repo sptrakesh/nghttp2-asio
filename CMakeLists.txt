@@ -337,10 +337,7 @@ set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 
 add_subdirectory(lib)
-#add_subdirectory(lib/includes)
-#add_subdirectory(third-party)
-#add_subdirectory(src/includes)
-#add_subdirectory(tests/testdata)
+add_subdirectory(example)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type)
 message(STATUS "summary of build options:

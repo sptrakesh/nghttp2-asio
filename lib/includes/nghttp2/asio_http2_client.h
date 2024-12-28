@@ -206,6 +206,8 @@ public:
   // Shutdowns connection.
   void shutdown() const;
 
+  bool stopped() const;
+
   // Returns underlying io_context object.
   boost::asio::io_context &io_context() const;
 
