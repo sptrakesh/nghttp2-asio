@@ -214,8 +214,7 @@ public:
   void join();
 
   // Get access to the io_context objects.
-  const std::vector<std::shared_ptr<boost::asio::io_context>> &
-  io_contexts() const;
+  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
 
   // Returns a vector with the ports in use
   std::vector<int> ports() const;

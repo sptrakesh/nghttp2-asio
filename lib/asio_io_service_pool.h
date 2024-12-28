@@ -71,8 +71,7 @@ public:
   boost::asio::io_context &get_executor();
 
   /// Get access to all io_context objects.
-  const std::vector<std::shared_ptr<boost::asio::io_context>> &
-  io_contexts() const;
+  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
 
 private:
   /// The pool of io_contexts.

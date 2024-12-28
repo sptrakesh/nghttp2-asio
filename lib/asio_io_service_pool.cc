@@ -97,8 +97,7 @@ boost::asio::io_context &io_context_pool::get_executor() {
   return io_context;
 }
 
-const std::vector<std::shared_ptr<boost::asio::io_context>> &
-io_context_pool::io_contexts() const {
+const std::vector<std::shared_ptr<boost::asio::io_context>> & io_context_pool::executors() const {
   return io_contexts_;
 }
 

@@ -24,8 +24,8 @@ int main()
     std::cerr << "error: " << ec.message() << std::endl;
   }
 
-  boost::asio::signal_set signals( *server.io_contexts().front(), SIGINT, SIGTERM );
+  boost::asio::signal_set signals( *server.executors().front(), SIGINT, SIGTERM );
   signals.async_wait( [&server](auto const&, int ) { server.stop(); server.join(); } );
 
-  server.io_contexts().front()->run();
+  server.executors().front()->run();
 }
