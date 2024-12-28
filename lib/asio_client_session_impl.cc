@@ -179,9 +179,7 @@ int on_begin_headers_callback(nghttp2_session *session,
 
   return 0;
 }
-} // namespace
 
-namespace {
 int on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
                        const uint8_t *name, size_t namelen,
                        const uint8_t *value, size_t valuelen, uint8_t flags,
@@ -275,9 +273,7 @@ int on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
 
   return 0;
 }
-} // namespace
 
-namespace {
 int on_frame_recv_callback(nghttp2_session *session, const nghttp2_frame *frame,
                            void *user_data) {
   auto sess = static_cast<session_impl *>(user_data);
@@ -333,9 +329,7 @@ int on_frame_recv_callback(nghttp2_session *session, const nghttp2_frame *frame,
   }
   return 0;
 }
-} // namespace
 
-namespace {
 int on_data_chunk_recv_callback(nghttp2_session *session, uint8_t flags,
                                 int32_t stream_id, const uint8_t *data,
                                 size_t len, void *user_data) {
@@ -350,9 +344,7 @@ int on_data_chunk_recv_callback(nghttp2_session *session, uint8_t flags,
 
   return 0;
 }
-} // namespace
 
-namespace {
 int on_stream_close_callback(nghttp2_session *session, int32_t stream_id,
                              uint32_t error_code, void *user_data) {
   auto sess = static_cast<session_impl *>(user_data);
@@ -499,21 +491,7 @@ const request *session_impl::submit(boost::system::error_code &ec,
     return nullptr;
   }
 
-  /*
-  http_parser_url u{};
   // TODO Handle CONNECT method
-  if (http_parser_parse_url(uri.c_str(), uri.size(), 0, &u) != 0) {
-    ec = make_error_code(boost::system::errc::invalid_argument);
-    return nullptr;
-  }
-
-  if ((u.field_set & (1 << UF_SCHEMA)) == 0 ||
-      (u.field_set & (1 << UF_HOST)) == 0) {
-    ec = make_error_code(boost::system::errc::invalid_argument);
-    return nullptr;
-  }
-  */
-
   auto strm = create_stream();
   auto &req = strm->request().impl();
   auto &uref = req.uri();

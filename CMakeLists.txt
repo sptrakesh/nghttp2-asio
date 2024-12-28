@@ -337,6 +337,7 @@ set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 
 add_subdirectory(lib)
+add_subdirectory(test)
 add_subdirectory(example)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type)
