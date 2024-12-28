@@ -578,7 +578,7 @@ void session_impl::shutdown() {
   signal_write();
 }
 
-boost::asio::io_context &session_impl::io_context() { return io_context_; }
+boost::asio::io_context &session_impl::executor() { return io_context_; }
 
 void session_impl::signal_write() {
   if (!inside_callback_) {

@@ -116,7 +116,7 @@ public:
   unsigned int status_code() const;
 
   // Returns boost::asio::io_context this response is running on.
-  boost::asio::io_context &io_context() const;
+  boost::asio::io_context &executor() const;
 
   // Application must not call this directly.
   response_impl &impl() const;

@@ -209,7 +209,7 @@ public:
   bool stopped() const;
 
   // Returns underlying io_context object.
-  boost::asio::io_context &io_context() const;
+  boost::asio::io_context &executor() const;
 
   // Submits request to server using |method| (e.g., "GET"), |uri|
   // (e.g., "http://localhost/") and optionally additional header

@@ -88,7 +88,7 @@ public:
 
   void signal_write();
 
-  boost::asio::io_context &io_context();
+  boost::asio::io_context &executor();
 
   const boost::asio::ip::tcp::endpoint &remote_endpoint();
 

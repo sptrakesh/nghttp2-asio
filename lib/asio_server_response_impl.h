@@ -58,7 +58,7 @@ public:
   response *push(boost::system::error_code &ec, std::string method,
                  std::string raw_path_query, header_map) const;
 
-  boost::asio::io_context &io_context();
+  boost::asio::io_context &executor();
 
   void start_response();
 

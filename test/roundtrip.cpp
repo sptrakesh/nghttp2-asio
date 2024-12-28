@@ -231,7 +231,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
       const auto json = boost::json::object{
           {"now", std::chrono::system_clock::now().time_since_epoch().count()},
           {"string", "value"},
-            {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
+          {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
           {"client", "nghttp2::asio::client"}};
       const auto [ct, resp] = ptest::response("/input", boost::json::serialize(json));
       CHECK(ct == "application/json");

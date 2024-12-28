@@ -119,8 +119,8 @@ void session::shutdown() const { impl_->shutdown(); }
 
 bool session::stopped() const { return impl_->stopped(); }
 
-boost::asio::io_context &session::io_context() const {
-  return impl_->io_context();
+boost::asio::io_context &session::executor() const {
+  return impl_->executor();
 }
 
 const request *session::submit(boost::system::error_code &ec,

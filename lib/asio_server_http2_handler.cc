@@ -478,7 +478,7 @@ response *http2_handler::push_promise(boost::system::error_code &ec,
   return &promised_strm->response();
 }
 
-boost::asio::io_context &http2_handler::io_context() { return io_context_; }
+boost::asio::io_context &http2_handler::executor() { return io_context_; }
 
 const boost::asio::ip::tcp::endpoint &http2_handler::remote_endpoint() {
   return remote_ep_;

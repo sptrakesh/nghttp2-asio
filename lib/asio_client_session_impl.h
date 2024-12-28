@@ -84,7 +84,7 @@ public:
 
   void shutdown();
 
-  boost::asio::io_context &io_context();
+  boost::asio::io_context &executor();
 
   void signal_write();
 

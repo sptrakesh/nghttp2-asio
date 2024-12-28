@@ -68,7 +68,7 @@ public:
   void join();
 
   /// Get an io_context to use.
-  boost::asio::io_context &get_io_context();
+  boost::asio::io_context &get_executor();
 
   /// Get access to all io_context objects.
   const std::vector<std::shared_ptr<boost::asio::io_context>> &

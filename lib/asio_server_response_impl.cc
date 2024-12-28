@@ -129,8 +129,8 @@ void response_impl::resume() {
   handler->resume(*strm_);
 }
 
-boost::asio::io_context &response_impl::io_context() {
-  return strm_->handler()->io_context();
+boost::asio::io_context &response_impl::executor() {
+  return strm_->handler()->executor();
 }
 
 void response_impl::pushed(bool f) { pushed_ = f; }
