@@ -37,7 +37,7 @@ namespace client {
 
 class response_impl;
 
-class response {
+class NGHTTP2_ASIO_EXPORT response {
 public:
   // Application must not call this directly.
   response();
@@ -69,11 +69,11 @@ class request;
 using response_cb = std::function<void(const response &)>;
 using request_cb = std::function<void(const request &)>;
 using connect_cb =
-    std::function<void(boost::asio::ip::tcp::resolver::iterator)>;
+    std::function<void(const boost::asio::ip::tcp::endpoint&)>;
 
 class request_impl;
 
-class request {
+class NGHTTP2_ASIO_EXPORT request {
 public:
   // Application must not call this directly.
   request();
@@ -121,7 +121,7 @@ private:
 };
 
 // Wrapper around an nghttp2_priority_spec.
-class priority_spec {
+class NGHTTP2_ASIO_EXPORT priority_spec {
 public:
   // The default ctor is used only by sentinel values.
   priority_spec() = default;
@@ -144,13 +144,16 @@ private:
 
 class session_impl;
 
-class session {
+class NGHTTP2_ASIO_EXPORT session {
 public:
   // Starts HTTP/2 session by connecting to |host| and |service|
   // (e.g., "80") using clear text TCP connection with connect timeout
   // 60 seconds.
   session(boost::asio::io_context &io_context, const std::string &host,
           const std::string &service);
+
+  session(boost::asio::io_context &io_context, const std::string &host,
+         const std::string &service, connect_cb ccb, error_cb ecb);
 
   // Same as previous but with pegged local endpoint
   session(boost::asio::io_context &io_context,
@@ -241,7 +244,7 @@ private:
 
 // configure |tls_ctx| for client use.  Currently, we just set NPN
 // callback for HTTP/2.
-boost::system::error_code
+NGHTTP2_ASIO_EXPORT boost::system::error_code
 configure_tls_context(boost::system::error_code &ec,
                       boost::asio::ssl::context &tls_ctx);
 

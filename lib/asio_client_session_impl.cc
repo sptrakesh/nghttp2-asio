@@ -24,8 +24,6 @@
  */
 #include "asio_client_session_impl.h"
 
-#include <iostream>
-
 #include "asio_client_stream.h"
 #include "asio_client_request_impl.h"
 #include "asio_client_response_impl.h"
@@ -33,6 +31,9 @@
 #include "template.h"
 #include "util.h"
 #include "http2.h"
+
+#include <iostream>
+#include <boost/url/parse.hpp>
 
 namespace nghttp2 {
 namespace asio_http2 {
@@ -72,15 +73,15 @@ void session_impl::start_resolve(const std::string &host,
 
   auto self = shared_from_this();
 
-  resolver_.async_resolve({host, service},
+  resolver_.async_resolve(host, service,
                           [self](const boost::system::error_code &ec,
-                                 tcp::resolver::iterator endpoint_it) {
+                                 tcp::resolver::results_type endpoints) {
                             if (ec) {
                               self->not_connected(ec);
                               return;
                             }
 
-                            self->start_connect(endpoint_it);
+                            self->start_connect(std::move(endpoints));
                           });
 
   deadline_.async_wait(std::bind(&session_impl::handle_deadline, self));
@@ -124,7 +125,7 @@ void session_impl::handle_ping(const boost::system::error_code &ec) {
   start_ping();
 }
 
-void session_impl::connected(tcp::resolver::iterator endpoint_it) {
+void session_impl::connected(const tcp::endpoint& endpoint) {
   if (!setup_session()) {
     return;
   }
@@ -138,7 +139,7 @@ void session_impl::connected(tcp::resolver::iterator endpoint_it) {
 
   auto &connect_cb = on_connect();
   if (connect_cb) {
-    connect_cb(endpoint_it);
+    connect_cb(endpoint);
   }
 }
 
@@ -483,10 +484,22 @@ const request *session_impl::submit(boost::system::error_code &ec,
   ec.clear();
 
   if (stopped_) {
-    ec = make_error_code(static_cast<nghttp2_error>(NGHTTP2_INTERNAL_ERROR));
+    ec = make_error_code(NGHTTP2_INTERNAL_ERROR);
     return nullptr;
   }
 
+  auto result = boost::urls::parse_uri( uri );
+  if (result.has_error()) {
+    ec = make_error_code(boost::system::errc::invalid_argument);
+    return nullptr;
+  }
+
+  if (!result.value().has_scheme() || !result.value().has_authority()) {
+    ec = make_error_code(boost::system::errc::invalid_argument);
+    return nullptr;
+  }
+
+  /*
   http_parser_url u{};
   // TODO Handle CONNECT method
   if (http_parser_parse_url(uri.c_str(), uri.size(), 0, &u) != 0) {
@@ -499,33 +512,35 @@ const request *session_impl::submit(boost::system::error_code &ec,
     ec = make_error_code(boost::system::errc::invalid_argument);
     return nullptr;
   }
+  */
 
   auto strm = create_stream();
   auto &req = strm->request().impl();
   auto &uref = req.uri();
 
-  http2::copy_url_component(uref.scheme, &u, UF_SCHEMA, uri.c_str());
-  http2::copy_url_component(uref.host, &u, UF_HOST, uri.c_str());
-  http2::copy_url_component(uref.raw_path, &u, UF_PATH, uri.c_str());
-  http2::copy_url_component(uref.raw_query, &u, UF_QUERY, uri.c_str());
+  uref.scheme = result.value().scheme();
+  uref.host = result.value().host();
+  uref.raw_path = std::string{result.value().encoded_path()};
+  uref.raw_query = std::string{result.value().encoded_query()};
 
   if (util::ipv6_numeric_addr(uref.host.c_str())) {
     uref.host = "[" + uref.host;
     uref.host += ']';
   }
-  if (u.field_set & (1 << UF_PORT)) {
+
+  if (result.value().port_number() > 0) {
     uref.host += ':';
-    uref.host += util::utos(u.port);
+    uref.host += result.value().port();
   }
 
   if (uref.raw_path.empty()) {
     uref.raw_path = "/";
   }
 
-  uref.path = percent_decode(uref.raw_path);
+  uref.path = result.value().path();
 
   auto path = uref.raw_path;
-  if (u.field_set & (1 << UF_QUERY)) {
+  if (!result.value().path().empty()) {
     path += '?';
     path += uref.raw_query;
   }

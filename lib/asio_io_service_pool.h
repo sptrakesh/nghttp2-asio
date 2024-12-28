@@ -79,7 +79,7 @@ private:
   std::vector<std::shared_ptr<boost::asio::io_context>> io_contexts_;
 
   /// The work that keeps the io_contexts running.
-  std::vector<std::shared_ptr<boost::asio::io_context::work>> work_;
+  std::vector<std::shared_ptr<boost::asio::executor_work_guard<decltype(boost::asio::io_context().get_executor())>>> work_;
 
   /// The next io_context to use for a connection.
   std::size_t next_io_context_;

@@ -24,6 +24,11 @@
  */
 #include "util.h"
 
+// Avoid min / max macros on windows
+#ifdef _WIN32
+#  define NOMINMAX
+#endif
+
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif // HAVE_TIME_H
@@ -173,7 +178,14 @@ std::string http_date(time_t t) {
 char *http_date(char *res, time_t t) {
   struct tm tms;
 
-  if (gmtime_r(&t, &tms) == nullptr) {
+  if (
+#ifndef _WIN32
+     gmtime_r(&t, &tms) == nullptr
+#else
+     // microsoft decided to reverse the arguments
+     gmtime_s(&tms, &t)
+#endif
+     ) {
     return res;
   }
 

@@ -35,8 +35,6 @@
 
 #include <nghttp2/nghttp2.h>
 
-#include "url-parser/url_parser.h"
-
 #include "util.h"
 #include "template.h"
 #include "allocator.h"
@@ -51,12 +49,6 @@ StringRef get_reason_phrase(unsigned int status_code);
 
 // Returns string version of |status_code|. (e.g., "404")
 StringRef stringify_status(BlockAllocator &balloc, unsigned int status_code);
-
-// Copies the |field| component value from |u| and |url| to the
-// |dest|. If |u| does not have |field|, then this function does
-// nothing.
-void copy_url_component(std::string &dest, const http_parser_url *u, int field,
-                        const char *url);
 
 // Creates nghttp2_nv using |name| and |value| and returns it. The
 // returned value only references the data pointer to name.c_str() and

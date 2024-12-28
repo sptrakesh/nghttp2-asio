@@ -415,7 +415,7 @@ void http2_handler::signal_write() {
   if (!inside_callback_ && !write_signaled_) {
     write_signaled_ = true;
     auto self = shared_from_this();
-    io_context_.post([self]() { self->initiate_write(); });
+    boost::asio::post(io_context_.get_executor(), [self]() { self->initiate_write(); });
   }
 }
 

@@ -25,10 +25,15 @@
 #include "asio_common.h"
 
 #include <fcntl.h>
+#ifdef _WIN32
+#  include <io.h>
+#endif
 
 #include "util.h"
 #include "template.h"
 #include "http2.h"
+
+#include <boost/url/parse.hpp>
 
 namespace nghttp2 {
 namespace asio_http2 {
@@ -74,13 +79,29 @@ boost::system::error_code make_error_code(nghttp2_asio_error ev) {
                                    nghttp2_asio_category());
 }
 
+class nghttp2_error_code_category_impl : public boost::system::error_category {
+public:
+  const char *name() const noexcept { return "nghttp2_error_code"; }
+  std::string message(int ev) const noexcept { return nghttp2_http2_strerror(ev); }
+};
+
+const boost::system::error_category &nghttp2_error_code_category() noexcept {
+  static nghttp2_error_code_category_impl cat;
+  return cat;
+}
+
+boost::system::error_code make_error_code(nghttp2_error_code ev){
+  return boost::system::error_code(static_cast<int>(ev),
+                                     nghttp2_error_code_category());
+}
+
 generator_cb string_generator(std::string data) {
   auto strio = std::make_shared<std::pair<std::string, size_t>>(std::move(data),
                                                                 data.size());
   return [strio](uint8_t *buf, size_t len, uint32_t *data_flags) {
     auto &data = strio->first;
     auto &left = strio->second;
-    auto n = std::min(len, left);
+    auto n = std::min<size_t>(len, left);
     std::copy_n(data.c_str() + data.size() - left, n, buf);
     left -= n;
     if (left == 0) {
@@ -102,8 +123,14 @@ std::shared_ptr<Defer<F, T...>> defer_shared(F &&f, T &&...t) {
                                           std::forward<T>(t)...);
 }
 
+#ifdef _WIN32
+#  define FD_MAGIC(f) _##f
+#else
+#  define FD_MAGIC(f) f
+#endif
+
 generator_cb file_generator(const std::string &path) {
-  auto fd = open(path.c_str(), O_RDONLY);
+  auto fd = FD_MAGIC(open)(path.c_str(), FD_MAGIC(O_RDONLY));
   if (fd == -1) {
     return generator_cb();
   }
@@ -112,12 +139,12 @@ generator_cb file_generator(const std::string &path) {
 }
 
 generator_cb file_generator_from_fd(int fd) {
-  auto d = defer_shared(close, fd);
+  auto d = defer_shared(FD_MAGIC(close), fd);
 
   return [fd, d](uint8_t *buf, size_t len,
                  uint32_t *data_flags) -> generator_cb::result_type {
     ssize_t n;
-    while ((n = read(fd, buf, len)) == -1 && errno == EINTR)
+    while ((n = FD_MAGIC(read)(fd, buf, len)) == -1 && errno == EINTR)
       ;
 
     if (n == -1) {
@@ -147,23 +174,22 @@ boost::system::error_code host_service_from_uri(boost::system::error_code &ec,
                                                 const std::string &uri) {
   ec.clear();
 
-  http_parser_url u{};
-  if (http_parser_parse_url(uri.c_str(), uri.size(), 0, &u) != 0) {
+  auto result = boost::urls::parse_uri(uri);
+  if (result.has_error()) {
     ec = make_error_code(boost::system::errc::invalid_argument);
     return ec;
   }
 
-  if ((u.field_set & (1 << UF_SCHEMA)) == 0 ||
-      (u.field_set & (1 << UF_HOST)) == 0) {
+  if (!result.value().has_scheme() || !result.value().has_authority()) {
     ec = make_error_code(boost::system::errc::invalid_argument);
     return ec;
   }
 
-  http2::copy_url_component(scheme, &u, UF_SCHEMA, uri.c_str());
-  http2::copy_url_component(host, &u, UF_HOST, uri.c_str());
+  scheme = result.value().scheme();
+  host = result.value().host();
 
-  if (u.field_set & (1 << UF_PORT)) {
-    http2::copy_url_component(service, &u, UF_PORT, uri.c_str());
+  if (result.value().port_number() > 0) {
+    service = result.value().port();
   } else {
     service = scheme;
   }
