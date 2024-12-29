@@ -63,7 +63,7 @@ void io_context_pool::run(bool asynchronous) {
 
 void io_context_pool::join() {
   // Wait for all threads in the pool to exit.
-  for (auto &thread : threads) if (thread.joinable()) thread.join();
+  for (auto& thread : threads) if (thread.joinable()) thread.join();
 }
 
 void io_context_pool::stop() {
