@@ -48,9 +48,7 @@ io_context_pool::io_context_pool(std::size_t pool_size) : next_io_context_(0) {
   // exit until they are explicitly stopped.
   for (std::size_t i = 0; i < pool_size; ++i) {
     auto io_context = std::make_shared<boost::asio::io_context>();
-    auto work = std::make_shared<boost::asio::executor_work_guard<decltype(boost::asio::io_context().get_executor())>>(io_context->get_executor());
     io_contexts_.push_back(io_context);
-    work_.push_back(work);
   }
 }
 
@@ -75,16 +73,9 @@ void io_context_pool::join() {
   }
 }
 
-void io_context_pool::force_stop() {
-  // Explicitly stop all io_contexts.
-  for (auto &iosv : io_contexts_) {
-    iosv->stop();
-  }
-}
-
 void io_context_pool::stop() {
   // Destroy all work objects to signals end of work
-  work_.clear();
+  for (auto &iosv : io_contexts_) iosv->stop();
 }
 
 boost::asio::io_context &io_context_pool::get_executor() {
