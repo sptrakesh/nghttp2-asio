@@ -38,6 +38,7 @@
 #define ASIO_io_context_POOL_H
 
 #include <future>
+#include <thread>
 #include <vector>
 
 #include <boost/noncopyable.hpp>
@@ -54,12 +55,10 @@ class io_context_pool : private boost::noncopyable {
 public:
   /// Construct the io_context pool.
   explicit io_context_pool(std::size_t pool_size);
+  ~io_context_pool();
 
   /// Run all io_context objects in the pool.
   void run(bool asynchronous = false);
-
-  /// Stop all io_context objects in the pool.
-  void force_stop();
 
   /// Destroy all work objects to signals end of work
   void stop();
@@ -70,21 +69,14 @@ public:
   /// Get an io_context to use.
   boost::asio::io_context &executor();
 
-  /// Get access to all io_context objects.
-  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
-
 private:
-  /// The pool of io_contexts.
-  std::vector<std::shared_ptr<boost::asio::io_context>> io_contexts_;
+  /// The io_context to use
+  boost::asio::io_context ioc;
 
-  /// The work that keeps the io_contexts running.
-  std::vector<std::shared_ptr<boost::asio::executor_work_guard<decltype(boost::asio::io_context().get_executor())>>> work_;
+  /// Threads to share handlers posted to the io_context
+  std::vector<std::thread> threads;
 
-  /// The next io_context to use for a connection.
-  std::size_t next_io_context_;
-
-  /// Futures to all the io_context objects
-  std::vector<std::future<std::size_t>> futures_;
+  std::size_t concurrency{0};
 };
 
 } // namespace asio_http2

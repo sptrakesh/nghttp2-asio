@@ -189,7 +189,6 @@ void server::stop() {
     acceptor.close();
   }
   io_context_pool_.stop();
-  io_context_pool_.force_stop();
 }
 
 void server::join() { io_context_pool_.join(); }

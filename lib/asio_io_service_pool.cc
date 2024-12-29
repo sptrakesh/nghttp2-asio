@@ -39,29 +39,22 @@ namespace nghttp2 {
 
 namespace asio_http2 {
 
-io_context_pool::io_context_pool(std::size_t pool_size) : next_io_context_(0) {
+io_context_pool::io_context_pool(std::size_t pool_size) : ioc{static_cast<int>(pool_size)}, concurrency{pool_size} {
   if (pool_size == 0) {
     throw std::runtime_error("io_context_pool size is 0");
   }
-
-  // Give all the io_contexts work to do so that their run() functions will not
-  // exit until they are explicitly stopped.
-  for (std::size_t i = 0; i < pool_size; ++i) {
-    auto io_context = std::make_shared<boost::asio::io_context>();
-    auto work = std::make_shared<boost::asio::executor_work_guard<decltype(boost::asio::io_context().get_executor())>>(io_context->get_executor());
-    io_contexts_.push_back(io_context);
-    work_.push_back(work);
-  }
 }
 
+ io_context_pool::~io_context_pool() {
+  stop();
+  join();
+}
+
+
 void io_context_pool::run(bool asynchronous) {
-  // Create a pool of threads to run all of the io_contexts.
-  for (std::size_t i = 0; i < io_contexts_.size(); ++i) {
-    futures_.push_back(std::async(std::launch::async,
-                                  (size_t(boost::asio::io_context::*)(void)) &
-                                      boost::asio::io_context::run,
-                                  io_contexts_[i]));
-  }
+  // Create a pool of threads to run handlers posted to the io_context
+  threads.reserve(concurrency);
+  for (std::size_t i = 0; i < concurrency; ++i) threads.emplace_back([this] {ioc.run();});
 
   if (!asynchronous) {
     join();
@@ -70,35 +63,16 @@ void io_context_pool::run(bool asynchronous) {
 
 void io_context_pool::join() {
   // Wait for all threads in the pool to exit.
-  for (auto &fut : futures_) {
-    fut.get();
-  }
-}
-
-void io_context_pool::force_stop() {
-  // Explicitly stop all io_contexts.
-  for (auto &iosv : io_contexts_) {
-    iosv->stop();
-  }
+  for (auto &thread : threads) if (thread.joinable()) thread.join();
 }
 
 void io_context_pool::stop() {
-  // Destroy all work objects to signals end of work
-  work_.clear();
+  // Signal the io_context to stop processing.
+  ioc.stop();
 }
 
 boost::asio::io_context &io_context_pool::executor() {
-  // Use a round-robin scheme to choose the next io_context to use.
-  auto &io_context = *io_contexts_[next_io_context_];
-  ++next_io_context_;
-  if (next_io_context_ == io_contexts_.size()) {
-    next_io_context_ = 0;
-  }
-  return io_context;
-}
-
-const std::vector<std::shared_ptr<boost::asio::io_context>> & io_context_pool::executors() const {
-  return io_contexts_;
+  return ioc;
 }
 
 } // namespace asio_http2
