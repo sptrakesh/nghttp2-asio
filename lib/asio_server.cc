@@ -81,14 +81,14 @@ boost::system::error_code server::bind_and_listen(boost::system::error_code &ec,
                                                   int backlog) {
   // Open the acceptor with the option to reuse the address (i.e.
   // SO_REUSEADDR).
-  tcp::resolver resolver(io_context_pool_.get_executor());
+  tcp::resolver resolver(io_context_pool_.executor());
   auto it = resolver.resolve(address, port, ec);
   if (ec) {
     return ec;
   }
 
   for (const auto &endpoint : it) {
-    auto acceptor = tcp::acceptor(io_context_pool_.get_executor());
+    auto acceptor = tcp::acceptor(io_context_pool_.executor());
 
     if (acceptor.open(endpoint.endpoint().protocol(), ec)) {
       continue;
@@ -129,7 +129,7 @@ void server::start_accept(boost::asio::ssl::context &tls_context,
 
   auto new_connection = std::make_shared<connection<ssl_socket>>(
       mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.get_executor(), tls_context);
+      io_context_pool_.executor(), tls_context);
 
   acceptor.async_accept(
       new_connection->socket().lowest_layer(),
@@ -168,7 +168,7 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
 
   auto new_connection = std::make_shared<connection<tcp::socket>>(
       mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.get_executor());
+      io_context_pool_.executor());
 
   acceptor.async_accept(
       new_connection->socket(), [this, &acceptor, &mux, new_connection](
@@ -195,7 +195,7 @@ void server::stop() {
 void server::join() { io_context_pool_.join(); }
 
 boost::asio::io_context & server::executor() {
-  return io_context_pool_.get_executor();
+  return io_context_pool_.executor();
 }
 
 const std::vector<int> server::ports() const {

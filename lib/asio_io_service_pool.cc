@@ -87,7 +87,7 @@ void io_context_pool::stop() {
   work_.clear();
 }
 
-boost::asio::io_context &io_context_pool::get_executor() {
+boost::asio::io_context &io_context_pool::executor() {
   // Use a round-robin scheme to choose the next io_context to use.
   auto &io_context = *io_contexts_[next_io_context_];
   ++next_io_context_;

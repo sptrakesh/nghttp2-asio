@@ -37,8 +37,8 @@
 #ifndef ASIO_io_context_POOL_H
 #define ASIO_io_context_POOL_H
 
-#include <vector>
 #include <future>
+#include <vector>
 
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_context.hpp>
@@ -68,7 +68,7 @@ public:
   void join();
 
   /// Get an io_context to use.
-  boost::asio::io_context &get_executor();
+  boost::asio::io_context &executor();
 
   /// Get access to all io_context objects.
   const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
