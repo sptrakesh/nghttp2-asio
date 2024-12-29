@@ -85,8 +85,8 @@ void http2::stop() { impl_->stop(); }
 
 void http2::join() { return impl_->join(); }
 
-const std::vector<std::shared_ptr<boost::asio::io_context>> & http2::executors() const {
-  return impl_->executors();
+boost::asio::io_context& http2::executor() const {
+  return impl_->executor();
 }
 
 std::vector<int> http2::ports() const { return impl_->ports(); }

@@ -76,7 +76,7 @@ public:
   void stop();
 
   /// Get access to all io_context objects.
-  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
+  boost::asio::io_context & executor();
 
   /// Returns a vector with all the acceptors ports in use.
   const std::vector<int> ports() const;

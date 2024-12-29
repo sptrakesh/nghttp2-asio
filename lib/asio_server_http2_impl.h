@@ -52,7 +52,7 @@ public:
   bool handle(std::string pattern, request_cb cb);
   void stop();
   void join();
-  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
+  boost::asio::io_context & executor() const;
   std::vector<int> ports() const;
 
 private:

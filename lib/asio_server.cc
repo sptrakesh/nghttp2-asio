@@ -194,9 +194,8 @@ void server::stop() {
 
 void server::join() { io_context_pool_.join(); }
 
-const std::vector<std::shared_ptr<boost::asio::io_context>> &
-server::executors() const {
-  return io_context_pool_.executors();
+boost::asio::io_context & server::executor() {
+  return io_context_pool_.get_executor();
 }
 
 const std::vector<int> server::ports() const {
