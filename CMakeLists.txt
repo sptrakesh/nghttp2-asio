@@ -38,6 +38,10 @@ endif()
 
 set(CMAKE_CXX_STANDARD 23)
 
+# Set the NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS value for server.  Originally hard-coded
+# to 100. Converted to compile time definition.
+add_compile_definitions(SERVER_MAX_CONCURRENT_STREAMS=256)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 
@@ -79,7 +83,7 @@ else()
 endif()
 
 include(ExtractValidFlags)
-foreach(_cxx1x_flag -std=c++14)
+foreach(_cxx1x_flag -std=c++23)
   extract_valid_cxx_flags(_cxx1x_flag_supported ${_cxx1x_flag})
   if(_cxx1x_flag_supported)
     set(CXX1XCXXFLAGS ${_cxx1x_flag})
