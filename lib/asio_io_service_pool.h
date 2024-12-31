@@ -37,7 +37,6 @@
 #ifndef ASIO_io_context_POOL_H
 #define ASIO_io_context_POOL_H
 
-#include <future>
 #include <thread>
 #include <vector>
 
@@ -51,7 +50,7 @@ namespace nghttp2 {
 namespace asio_http2 {
 
 /// A pool of io_context objects.
-class io_context_pool : private boost::noncopyable {
+class io_context_pool : boost::noncopyable {
 public:
   /// Construct the io_context pool.
   explicit io_context_pool(std::size_t pool_size);
@@ -60,13 +59,13 @@ public:
   /// Run all io_context objects in the pool.
   void run(bool asynchronous = false);
 
-  /// Destroy all work objects to signals end of work
+  /// Stop the io_context to stop which signals end of work
   void stop();
 
-  /// Join on all io_context objects in the pool.
+  /// Join on all io_context threads in the pool.
   void join();
 
-  /// Get an io_context to use.
+  /// Get the io_context to use.
   boost::asio::io_context &executor();
 
 private:
@@ -76,6 +75,7 @@ private:
   /// Threads to share handlers posted to the io_context
   std::vector<std::thread> threads;
 
+  /// The desired number of threads on which the io_context run is spawned
   std::size_t concurrency{0};
 };
 

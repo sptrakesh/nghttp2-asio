@@ -8,7 +8,8 @@ set_source_files_properties(${cxx_sources} PROPERTIES
   COMPILE_FLAGS "${WARNCXXFLAGS} ${CXX1XCXXFLAGS}")
 
 set(NGHTTP2_ASIO_SOURCES
-  util.cc http2.cc
+  util.cc
+  http2.cc
   timegm.c
   asio_common.cc
   asio_io_service_pool.cc
@@ -49,15 +50,14 @@ add_library(nghttp2_asio_object OBJECT ${NGHTTP2_ASIO_SOURCES})
 target_include_directories(nghttp2_asio_object
   PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third-party"
   ${LIBNGHTTP2_INCLUDE_DIRS}
   ${OPENSSL_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   INTERFACE
-  "${CMAKE_CURRENT_BINARY_DIR}/../lib/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../lib/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/includes"
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/includes>
+  $<INSTALL_INTERFACE:include>
 )
+target_link_options(nghttp2_asio_object PUBLIC -fsanitize=undefined -fsanitize=address)
 target_link_libraries(nghttp2_asio_object
   PRIVATE
   ${LIBNGHTTP2_LIBRARIES}
@@ -71,6 +71,7 @@ set_target_properties(nghttp2_asio_object
   VERSION ${LT_VERSION}
   SOVERSION ${LT_SOVERSION}
 )
+target_compile_features(nghttp2_asio_object INTERFACE cxx_std_23)
 
 # Public shared library
 if(ENABLE_SHARED_LIB)
@@ -78,7 +79,7 @@ if(ENABLE_SHARED_LIB)
   target_compile_definitions(nghttp2_asio_object PUBLIC BUILDING_NGHTTP2_ASIO)
   add_library(nghttp2_asio SHARED)
   target_link_libraries(nghttp2_asio PUBLIC nghttp2_asio_object)
-  install(TARGETS nghttp2_asio)
+  install(TARGETS nghttp2_asio nghttp2_asio_object EXPORT Nghttp2AsioTargets DESTINATION lib)
 endif()
 
 # Static library
@@ -86,8 +87,13 @@ if(ENABLE_STATIC_LIB)
   add_library(nghttp2_asio_static STATIC)
   target_link_libraries(nghttp2_asio_static PUBLIC nghttp2_asio_object)
   set_target_properties(nghttp2_asio_static PROPERTIES ARCHIVE_OUTPUT_NAME nghttp2_asio${STATIC_LIB_SUFFIX})
-  install(TARGETS nghttp2_asio_static)
+  install(TARGETS nghttp2_asio_static nghttp2_asio_object EXPORT Nghttp2AsioTargets DESTINATION lib)
 endif()
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libnghttp2_asio.pc"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+install(EXPORT Nghttp2AsioTargets
+    FILE Nghttp2AsioTargets.cmake
+    NAMESPACE nghttp2::asio::
+    DESTINATION lib/cmake/Nghttp2Asio
+)
