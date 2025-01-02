@@ -18,4 +18,4 @@ target_include_directories(integration PRIVATE ${LIBNGHTTP2_INCLUDE_DIRS} ${OPEN
   "${CMAKE_CURRENT_BINARY_DIR}/../lib/includes"
   "${CMAKE_CURRENT_SOURCE_DIR}/../lib/includes"
 )
-target_link_libraries(integration PRIVATE Catch2::Catch2WithMain Boost::json nghttp2_asio_static ${LIBNGHTTP2_LIBRARIES} ${OPENSSL_LIBRARIES})
+target_link_libraries(integration PRIVATE Catch2::Catch2WithMain Boost::json nghttp2::asio ${LIBNGHTTP2_LIBRARIES} ${OPENSSL_LIBRARIES})

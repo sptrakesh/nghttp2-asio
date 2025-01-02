@@ -340,9 +340,6 @@ set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 
 install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 
-add_compile_options(-fsanitize=address -fsanitize=undefined)
-add_link_options(-fsanitize=address -fsanitize=undefined)
-
 add_subdirectory(lib)
 if (BUILD_EXAMPLE)
   add_subdirectory(test)
@@ -376,7 +373,7 @@ message(STATUS "summary of build options:
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "Nghttp2AsioConfig.cmake"
-    VERSION ${mongoservice_VERSION}
+    VERSION ${nghttp2asio_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 install(FILES "Nghttp2AsioConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/Nghttp2AsioConfig.cmake" DESTINATION lib/cmake/Nghttp2Asio)
