@@ -55,7 +55,7 @@ endif (ENABLE_STATIC_LIB)
 add_library(nghttp2::asio ALIAS ${Target_Name})
 
 target_compile_definitions(${Target_Name}
-  PRIVATE _FORTIFY_SOURCE=2
+  PRIVATE _FORTIFY_SOURCE=3
 )
 
 target_include_directories(${Target_Name}
