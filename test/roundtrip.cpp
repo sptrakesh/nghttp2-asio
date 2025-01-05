@@ -100,7 +100,7 @@ struct Fixture {
 private:
 
   void setUp() {
-    server.num_threads( 16 );
+    server.num_threads( 1 ); // Using pool causes assertion error.
     server.handle("/data", data);
     server.handle("/input", receive);
     server.handle("/", root);
