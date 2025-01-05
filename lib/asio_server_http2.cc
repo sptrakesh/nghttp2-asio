@@ -69,11 +69,11 @@ void http2::num_threads(size_t num_threads) { impl_->num_threads(num_threads); }
 
 void http2::backlog(int backlog) { impl_->backlog(backlog); }
 
-void http2::tls_handshake_timeout(const boost::posix_time::time_duration &t) {
+void http2::tls_handshake_timeout(const std::chrono::microseconds &t) {
   impl_->tls_handshake_timeout(t);
 }
 
-void http2::read_timeout(const boost::posix_time::time_duration &t) {
+void http2::read_timeout(const std::chrono::microseconds &t) {
   impl_->read_timeout(t);
 }
 

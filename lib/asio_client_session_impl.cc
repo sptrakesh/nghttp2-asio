@@ -41,13 +41,13 @@ namespace client {
 
 session_impl::session_impl(
     boost::asio::io_context &io_context,
-    const boost::posix_time::time_duration &connect_timeout)
+    std::chrono::microseconds connect_timeout)
     : wblen_(0),
       io_context_(io_context),
       resolver_(io_context),
       deadline_(io_context),
       connect_timeout_(connect_timeout),
-      read_timeout_(boost::posix_time::seconds(60)),
+      read_timeout_(std::chrono::seconds(60)),
       ping_(io_context),
       session_(nullptr),
       data_pending_(nullptr),
@@ -69,7 +69,7 @@ session_impl::~session_impl() {
 
 void session_impl::start_resolve(const std::string &host,
                                  const std::string &service) {
-  deadline_.expires_from_now(connect_timeout_);
+  deadline_.expires_after(connect_timeout_);
 
   auto self = shared_from_this();
 
@@ -92,11 +92,10 @@ void session_impl::handle_deadline() {
     return;
   }
 
-  if (deadline_.expires_at() <=
-      boost::asio::deadline_timer::traits_type::now()) {
+  if (deadline_.expiry() <= std::chrono::system_clock::now()) {
     call_error_cb(boost::asio::error::timed_out);
     stop();
-    deadline_.expires_at(boost::posix_time::pos_infin);
+    deadline_.expires_after(std::chrono::seconds{std::numeric_limits<int32_t>::max()});
     return;
   }
 
@@ -107,7 +106,7 @@ void session_impl::handle_deadline() {
 void handle_ping2(const boost::system::error_code &ec, int) {}
 
 void session_impl::start_ping() {
-  ping_.expires_from_now(boost::posix_time::seconds(30));
+  ping_.expires_after(std::chrono::seconds{30});
   ping_.async_wait(std::bind(&session_impl::handle_ping, shared_from_this(),
                              std::placeholders::_1));
 }
@@ -615,7 +614,7 @@ void session_impl::do_read() {
     return;
   }
 
-  deadline_.expires_from_now(read_timeout_);
+  deadline_.expires_after(read_timeout_);
 
   auto self = this->shared_from_this();
 
@@ -712,7 +711,7 @@ void session_impl::do_write() {
 
   // Reset read deadline here, because normally client is sending
   // something, it does not expect timeout while doing it.
-  deadline_.expires_from_now(read_timeout_);
+  deadline_.expires_after(read_timeout_);
 
   auto self = this->shared_from_this();
 
@@ -743,7 +742,7 @@ void session_impl::stop() {
 
 bool session_impl::stopped() const { return stopped_; }
 
-void session_impl::read_timeout(const boost::posix_time::time_duration &t) {
+void session_impl::read_timeout(std::chrono::microseconds t) {
   read_timeout_ = t;
 }
 

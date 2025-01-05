@@ -45,8 +45,8 @@ namespace asio_http2 {
 namespace server {
 
 server::server(std::size_t io_context_pool_size,
-               const boost::posix_time::time_duration &tls_handshake_timeout,
-               const boost::posix_time::time_duration &read_timeout)
+               std::chrono::microseconds tls_handshake_timeout,
+               std::chrono::microseconds read_timeout)
     : io_context_pool_(io_context_pool_size),
       tls_handshake_timeout_(tls_handshake_timeout),
       read_timeout_(read_timeout) {}
