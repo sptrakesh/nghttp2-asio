@@ -40,7 +40,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 # Set the NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS value for server.  Originally hard-coded
 # to 100. Converted to compile time definition.
-add_compile_definitions(SERVER_MAX_CONCURRENT_STREAMS=256)
+add_compile_definitions(SERVER_MAX_CONCURRENT_STREAMS=1024)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
