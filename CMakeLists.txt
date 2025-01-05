@@ -62,6 +62,19 @@ endif()
 
 include(GNUInstallDirs)
 
+if (WIN32)
+  if (POLICY CMP0111)
+    cmake_policy(SET CMP0111 NEW)
+  endif (POLICY CMP0111)
+  if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+  endif()
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "/EHsc /await:strict /utf-8 /DNOMINMAX")
+    add_compile_definitions(_WIN32_WINNT=0x0A000007)
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+endif(WIN32)
+
 # Auto-detection of features that can be toggled
 find_package(OpenSSL 1.0.1)
 find_package(Libnghttp2 1.64.0)
@@ -144,10 +157,13 @@ else()
   set(OPENSSL_LIBRARIES     "")
 endif()
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME ON)
-set(Boost_USE_MULTITHREADED ON)
-set(OPENSSL_USE_STATIC_LIBS TRUE)
+if (BOOST_STATIC_LIBS)
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
+  set(Boost_USE_MULTITHREADED ON)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif (BOOST_STATIC_LIBS)
+
 find_package(Boost 1.86.0 REQUIRED system thread url)
 
 # Checks for header files.
