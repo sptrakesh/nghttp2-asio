@@ -303,8 +303,8 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
         }));
       }
 
-      for (auto i = 0; i < total; i++) {
-        const auto [ct, resp] = vec.at(i).get();
+      for (auto& fut : vec) {
+        const auto [ct, resp] = fut.get();
         CHECK(ct == "application/json");
         REQUIRE_FALSE(resp.empty());
 
@@ -322,6 +322,49 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
         REQUIRE(obj.contains("payload"));
         REQUIRE(obj.at("payload").is_object());
         CHECK(obj.at("payload").as_object() == json);
+      }
+    }
+
+    AND_WHEN("Making requests in parallel in a loop") {
+      using R = std::tuple<std::string, std::string>;
+    constexpr auto total = 128;
+
+      const auto json = boost::json::object{
+        {"now", std::chrono::system_clock::now().time_since_epoch().count()},
+        {"string", "value"},
+        {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
+        {"client", "nghttp2::asio::client"}};
+
+      for (auto i = 0; i < 16; i++) {
+        auto vec = std::vector<std::future<R>>{};
+        vec.reserve(total);
+
+        for (auto j = 0; j < total; j++) {
+          vec.push_back(std::async(std::launch::async, [json]() {
+            return ptest::response("/input", boost::json::serialize(json));
+          }));
+        }
+
+        for (auto& fut : vec) {
+          const auto [ct, resp] = fut.get();
+          CHECK(ct == "application/json");
+          REQUIRE_FALSE(resp.empty());
+
+          auto ec = boost::system::error_code{};
+          auto parsed = boost::json::parse(resp, ec);
+          REQUIRE_FALSE(ec);
+          REQUIRE(parsed.is_object());
+
+          auto& obj = parsed.as_object();
+          REQUIRE(obj.contains("received"));
+          REQUIRE(obj.at("received").is_int64());
+          CHECK(obj.at("received").as_int64() > json.at("now").as_int64());
+          REQUIRE(obj.contains("server"));
+          REQUIRE(obj.at("server").is_string());
+          REQUIRE(obj.contains("payload"));
+          REQUIRE(obj.at("payload").is_object());
+          CHECK(obj.at("payload").as_object() == json);
+        }
       }
     }
   }
