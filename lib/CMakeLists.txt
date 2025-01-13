@@ -55,7 +55,7 @@ endif (ENABLE_STATIC_LIB)
 add_library(nghttp2::asio ALIAS ${Target_Name})
 
 target_compile_definitions(${Target_Name}
-  PRIVATE _FORTIFY_SOURCE=3
+  PRIVATE _FORTIFY_SOURCE=2
 )
 
 target_include_directories(${Target_Name}
@@ -75,7 +75,7 @@ target_link_libraries(${Target_Name}
   ${Boost_LIBRARIES}
   Boost::url
 )
-target_link_libraries(${Target_Name} INTERFACE  ${LIBNGHTTP2_LIBRARIES} ${Boost_LIBRARIES} Boost::url ${OPENSSL_LIBRARIES})
+target_link_libraries(${Target_Name} INTERFACE ${LIBNGHTTP2_LIBRARIES} ${Boost_LIBRARIES} Boost::url ${OPENSSL_LIBRARIES})
 set_target_properties(${Target_Name}
   PROPERTIES
   VERSION ${LT_VERSION}

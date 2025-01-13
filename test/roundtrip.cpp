@@ -90,7 +90,7 @@ void receive(const nghttp2::asio_http2::server::request& req, const nghttp2::asi
 
 struct Fixture {
   Fixture() {
-    setUp();
+    setup();
   }
 
   ~Fixture() {
@@ -101,7 +101,7 @@ struct Fixture {
 
 private:
 
-  void setUp() {
+  void setup() {
     server.num_threads( 1 ); // Using pool causes assertion error.
     server.handle("/data", data);
     server.handle("/input", receive);
