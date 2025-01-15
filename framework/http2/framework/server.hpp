@@ -73,14 +73,14 @@ namespace spt::http2::framework
      * expects only text data (JSON, YAML, ...) being submitted to endpoints.
      * @param config The server configuration object.
      */
-    explicit Server( const Configuration& config ) : configuration{ config }, pool{ config.numberOfThreads } { init(); }
+    explicit Server( const Configuration& config ) : configuration{ config }, pool{ config.numberOfWorkerThreads } { init(); }
 
     /// A call back function used to scan any data submitted to the service.  Implement desired logic such
     /// as scanning for tags, scripts, invalid characters ... as appropriate.
     using Scanner = std::function<bool( std::string_view )>;
 
     /**
-     * Create a server instance using specified configuration and input sanitisation function.  Sanitisation
+     * Create a server instance using specified configuration and input scanner function.  Scanner
      * function should _validate_ the input data and either _approve_ or _reject_ the content. Server implementation
      * expects only text data (JSON, YAML, ...) being submitted to endpoints.  Server will send a `400` response
      * if the function returns `false`.
@@ -89,7 +89,7 @@ namespace spt::http2::framework
      *   returns `false`, a `413` response is sent to client.
      */
     explicit Server( const Configuration& config, Scanner&& scanner ) :
-        configuration{ config }, pool{ config.numberOfThreads }, scanner{ std::move( scanner ) }
+        configuration{ config }, pool{ config.numberOfWorkerThreads }, scanner{ std::move( scanner ) }
     {
       init();
     }
