@@ -1,10 +1,10 @@
 find_package(Boost 1.86.0 REQUIRED json)
+find_package(bsoncxx REQUIRED)
 
 if (APPLE)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/spt")
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/mongo")
   include_directories(/usr/local/spt)
-  find_package(bsoncxx REQUIRED)
 else()
   list(APPEND CMAKE_PREFIX_PATH "/opt/spt")
   list(APPEND CMAKE_PREFIX_PATH "/opt/local")

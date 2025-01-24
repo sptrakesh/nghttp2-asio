@@ -5,6 +5,9 @@
 #include "common.hpp"
 
 #include <ranges>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 
 std::string_view spt::http2::framework::statusMessage( uint16_t status )
 {
@@ -83,7 +86,7 @@ std::string_view spt::http2::framework::statusMessage( uint16_t status )
 void spt::http2::framework::cors( const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res, const Configuration& configuration )
 {
   auto hdrs = nghttp2::asio_http2::header_map{
-      { "Access-Control-Allow-Methods", { std::format( "{:n:}", configuration.corsMethods ), false } },
+      { "Access-Control-Allow-Methods", { fmt::format( "{}", fmt::join( configuration.corsMethods, ", " ) ), false } },
       { "Access-Control-Allow-Headers", { "*, authorization", false } },
       { "content-length", { "0", false } }
   };

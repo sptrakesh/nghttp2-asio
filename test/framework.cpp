@@ -9,6 +9,8 @@
 #include <ranges>
 #include <boost/json/parse.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <nghttp2/asio_http2_client.h>
 
 using std::operator ""s;
@@ -38,7 +40,7 @@ namespace
       void set( std::span<const std::string> methods, std::span<const std::string> origins )
       {
         headers = nghttp2::asio_http2::header_map{
-            { "Access-Control-Allow-Methods", { std::format( "{:n:}", methods ), false } },
+            { "Access-Control-Allow-Methods", { fmt::format( "{}", fmt::join( methods, ", " ) ), false } },
             { "Access-Control-Allow-Headers", { "*, authorization", false } },
             { "content-type", { "application/json; charset=utf-8", false } },
             { "content-length", { std::to_string( body.size() ), false } }

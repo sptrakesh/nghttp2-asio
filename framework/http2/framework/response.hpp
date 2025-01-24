@@ -15,7 +15,7 @@ namespace spt::http2::framework
   concept Response = requires( T t, std::span<const std::string> methods, std::span<const std::string> origins )
   {
     /// Construct a response object using any relevant client request headers.
-    std::constructible_from<T, const nghttp2::asio_http2::header_map&>;
+    requires std::constructible_from<T, const nghttp2::asio_http2::header_map&>;
     std::is_same<decltype(T::body), std::string>{};
     std::is_same<decltype(T::filePath), std::string>{};
     std::is_same<decltype(T::status), uint16_t>{};
