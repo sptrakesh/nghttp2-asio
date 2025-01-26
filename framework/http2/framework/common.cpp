@@ -96,7 +96,7 @@ void spt::http2::framework::cors( const nghttp2::asio_http2::server::request& re
   if ( iter != std::cend( req.header() ) )
   {
     const auto oiter = std::ranges::find( configuration.origins, iter->second.value );
-    if ( oiter != std::ranges::end( configuration.origins ) )
+    if ( oiter != std::ranges::end( configuration.origins ) || ( configuration.origins.size() == 1 && configuration.origins.front() == "*" ) )
     {
       hdrs.emplace( "Access-Control-Allow-Origin", nghttp2::asio_http2::header_value{ iter->second.value, false } );
       hdrs.emplace( "Vary", nghttp2::asio_http2::header_value{ "Origin", false } );
@@ -106,6 +106,6 @@ void spt::http2::framework::cors( const nghttp2::asio_http2::server::request& re
 #endif
   }
 
-  res.write_head( 200, std::move( hdrs ) );
+  res.write_head( 204, std::move( hdrs ) );
   res.end( "" );
 }

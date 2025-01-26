@@ -171,7 +171,9 @@ namespace spt::http2::framework
         res.end( boost::json::serialize( boost::json::object{ { "code", code }, { "cause", msg } } ) );
       };
 
-      if ( !router.canRoute( req.method(), req.uri().path ) )  return error( 404, "Not Found", res );
+      auto [pathMatches, methodMatches] = router.canRoute( req.method(), req.uri().path );
+      if ( !pathMatches ) return error( 404, "Not Found", res );
+      if ( !methodMatches ) return error( 405, "Method Not Allowed", res );
 
       auto iter = req.header().find( "content-length"s );
       if ( iter == req.header().end() ) iter = req.header().find( "Content-Length"s );

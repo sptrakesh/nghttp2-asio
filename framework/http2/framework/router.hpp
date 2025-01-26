@@ -51,7 +51,7 @@ namespace spt::http2::framework
       return router.route( method, path, request );
     }
 
-    [[nodiscard]] bool canRoute( std::string_view method, std::string_view path ) const
+    [[nodiscard]] std::tuple<bool, bool> canRoute( std::string_view method, std::string_view path ) const
     {
       return router.canRoute( method, path );
     }
