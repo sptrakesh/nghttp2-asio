@@ -65,6 +65,7 @@ public:
   // Returns the remote endpoint of the request
   const boost::asio::ip::tcp::endpoint &remote_endpoint() const;
 
+  decltype(std::chrono::system_clock::now()) timestamp{ std::chrono::system_clock::now() };
 private:
   std::unique_ptr<request_impl> impl_;
 };
