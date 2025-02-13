@@ -5,6 +5,8 @@
 #include "common.hpp"
 
 #include <ranges>
+
+#include <boost/algorithm/string/split.hpp>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
@@ -82,6 +84,26 @@ std::string_view spt::http2::framework::statusMessage( uint16_t status )
     return "Undefined"sv;
   }
 }
+
+std::string spt::http2::framework::ipaddress( const Request& req )
+{
+  auto iter = req.header.find( "x-real-ip" );
+  if ( iter == req.header.end() ) iter = req.header.find( "X-Real-IP" );
+  if ( iter != req.header.end() ) return iter->second.value;
+
+  iter = req.header.find( "x-forwarded-for" );
+  if ( iter == req.header.end() ) iter = req.header.find( "X-Forwarded-For" );
+  if ( iter != req.header.end() )
+  {
+    auto parts = std::vector<std::string>{};
+    parts.reserve( 4 );
+    boost::split( parts, iter->second.value, [](char c) { return c == ',' || c == ' '; } );
+    if ( !parts.empty() ) return parts.front();
+  }
+
+  return req.remoteEndpoint;
+}
+
 
 void spt::http2::framework::cors( const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res, const Configuration& configuration )
 {

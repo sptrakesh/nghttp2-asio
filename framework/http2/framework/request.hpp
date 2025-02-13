@@ -8,6 +8,9 @@
 
 namespace spt::http2::framework
 {
+  /// A simple wrapper around the nghttp2-asio request structure.  This structure copies some
+  /// of the data in the original request, to ensure that processors have access to data even
+  /// if the client has already closed the connection.
   struct Request
   {
     explicit Request( const nghttp2::asio_http2::server::request& req ) :
