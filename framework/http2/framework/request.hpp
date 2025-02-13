@@ -13,7 +13,8 @@ namespace spt::http2::framework
     explicit Request( const nghttp2::asio_http2::server::request& req ) :
       header{ req.header() }, method{ req.method() },
       path{ req.uri().path }, query{ req.uri().raw_query },
-      remoteEndpoint{ req.remote_endpoint().address().to_string() } {}
+      remoteEndpoint{ req.remote_endpoint().address().to_string() },
+      timestamp{ req.timestamp } {}
 
     ~Request() = default;
     Request(Request&&) = default;
@@ -27,5 +28,6 @@ namespace spt::http2::framework
     std::string path;
     std::string query;
     std::string remoteEndpoint;
+    decltype(std::chrono::system_clock::now()) timestamp;
   };
 }
