@@ -31,6 +31,6 @@ namespace spt::http2::framework
     std::string path;
     std::string query;
     std::string remoteEndpoint;
-    decltype(std::chrono::system_clock::now()) timestamp;
+    decltype(std::chrono::high_resolution_clock::now()) timestamp;
   };
 }
