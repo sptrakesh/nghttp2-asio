@@ -63,8 +63,7 @@ using ssl_socket = boost::asio::ssl::stream<tcp::socket>;
 
 class server : private boost::noncopyable {
 public:
-  explicit server(std::size_t io_context_pool_size,
-                  std::chrono::microseconds tls_handshake_timeout,
+  explicit server(std::chrono::microseconds tls_handshake_timeout,
                   std::chrono::microseconds read_timeout);
 
   boost::system::error_code
