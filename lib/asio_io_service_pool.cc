@@ -39,22 +39,14 @@ namespace nghttp2 {
 
 namespace asio_http2 {
 
-io_context_pool::io_context_pool(std::size_t pool_size) : ioc{static_cast<int>(pool_size)}, concurrency{pool_size} {
-  if (pool_size == 0) {
-    throw std::runtime_error("io_context_pool size is 0");
-  }
-}
-
- io_context_pool::~io_context_pool() {
+io_context_pool::~io_context_pool() {
   stop();
   join();
 }
 
 
 void io_context_pool::run(bool asynchronous) {
-  // Create a pool of threads to run handlers posted to the io_context
-  threads.reserve(concurrency);
-  for (std::size_t i = 0; i < concurrency; ++i) threads.emplace_back([this] {ioc.run();});
+  threads.emplace_back([this] {ioc.run();});
 
   if (!asynchronous) {
     join();

@@ -194,10 +194,6 @@ public:
   // equivalent .- and ..-free URL.
   bool handle(std::string pattern, request_cb cb);
 
-  // Sets number of native threads to handle incoming HTTP request.
-  // It defaults to 1.
-  void num_threads(size_t num_threads);
-
   // Sets the maximum length to which the queue of pending
   // connections.
   void backlog(int backlog);

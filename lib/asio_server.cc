@@ -44,11 +44,9 @@ namespace nghttp2 {
 namespace asio_http2 {
 namespace server {
 
-server::server(std::size_t io_context_pool_size,
-               std::chrono::microseconds tls_handshake_timeout,
+server::server(std::chrono::microseconds tls_handshake_timeout,
                std::chrono::microseconds read_timeout)
-    : io_context_pool_(io_context_pool_size),
-      tls_handshake_timeout_(tls_handshake_timeout),
+    : tls_handshake_timeout_(tls_handshake_timeout),
       read_timeout_(read_timeout) {}
 
 boost::system::error_code
