@@ -44,9 +44,10 @@ namespace nghttp2 {
 namespace asio_http2 {
 namespace server {
 
-server::server(std::chrono::microseconds tls_handshake_timeout,
+server::server(std::size_t io_context_pool_size,
+               std::chrono::microseconds tls_handshake_timeout,
                std::chrono::microseconds read_timeout)
-    : io_context_pool_(),
+    : io_context_pool_(io_context_pool_size),
       tls_handshake_timeout_(tls_handshake_timeout),
       read_timeout_(read_timeout) {}
 
@@ -87,7 +88,8 @@ boost::system::error_code server::bind_and_listen(boost::system::error_code &ec,
   }
 
   for (const auto &endpoint : it) {
-    auto acceptor = tcp::acceptor(io_context_pool_.executor());
+    auto strand = boost::asio::make_strand(io_context_pool_.executor());
+    auto acceptor = tcp::acceptor(strand);
 
     if (acceptor.open(endpoint.endpoint().protocol(), ec)) {
       continue;
@@ -105,7 +107,7 @@ boost::system::error_code server::bind_and_listen(boost::system::error_code &ec,
       continue;
     }
 
-    acceptors_.push_back(std::move(acceptor));
+    acceptors_.emplace_back(std::move(strand), std::move(acceptor));
   }
 
   if (acceptors_.empty()) {
@@ -120,17 +122,17 @@ boost::system::error_code server::bind_and_listen(boost::system::error_code &ec,
 }
 
 void server::start_accept(boost::asio::ssl::context &tls_context,
-                          tcp::acceptor &acceptor, serve_mux &mux) {
+                          Acceptor &acceptor, serve_mux &mux) {
 
-  if (!acceptor.is_open()) {
+  if (!acceptor.acceptor.is_open()) {
     return;
   }
 
   auto new_connection = std::make_shared<connection<ssl_socket>>(
-      mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.executor(), tls_context);
+      acceptor.strand, mux, tls_handshake_timeout_, read_timeout_,
+      acceptor.strand, tls_context);
 
-  acceptor.async_accept(
+  acceptor.acceptor.async_accept(
       new_connection->socket().lowest_layer(),
       [this, &tls_context, &acceptor, &mux,
        new_connection](const boost::system::error_code &e) {
@@ -159,17 +161,17 @@ void server::start_accept(boost::asio::ssl::context &tls_context,
       });
 }
 
-void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
+void server::start_accept(Acceptor &acceptor, serve_mux &mux) {
 
-  if (!acceptor.is_open()) {
+  if (!acceptor.acceptor.is_open()) {
     return;
   }
 
   auto new_connection = std::make_shared<connection<tcp::socket>>(
-      mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.executor());
+      acceptor.strand, mux, tls_handshake_timeout_, read_timeout_,
+      acceptor.strand);
 
-  acceptor.async_accept(
+  acceptor.acceptor.async_accept(
       new_connection->socket(), [this, &acceptor, &mux, new_connection](
                                     const boost::system::error_code &e) {
         if (!e) {
@@ -177,7 +179,7 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
           new_connection->start_read_deadline();
           new_connection->start();
         }
-        if (acceptor.is_open()) {
+        if (acceptor.acceptor.is_open()) {
           start_accept(acceptor, mux);
         }
       });
@@ -185,7 +187,7 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
 
 void server::stop() {
   for (auto &acceptor : acceptors_) {
-    acceptor.close();
+    acceptor.acceptor.close();
   }
   io_context_pool_.stop();
 }
@@ -200,7 +202,7 @@ const std::vector<int> server::ports() const {
   auto ports = std::vector<int>(acceptors_.size());
   auto index = 0;
   for (const auto &acceptor : acceptors_) {
-    ports[index++] = acceptor.local_endpoint().port();
+    ports[index++] = acceptor.acceptor.local_endpoint().port();
   }
   return ports;
 }
