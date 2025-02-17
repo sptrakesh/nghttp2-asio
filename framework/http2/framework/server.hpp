@@ -154,6 +154,7 @@ namespace spt::http2::framework
     void init()
     {
       server.backlog( configuration.backlog );
+      server.num_threads( configuration.numberOfServerThreads );
 
       server.handle( "/", [this](const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res)
       {

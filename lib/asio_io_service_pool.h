@@ -53,7 +53,7 @@ namespace asio_http2 {
 class io_context_pool : boost::noncopyable {
 public:
   /// Construct the io_context pool.
-  io_context_pool() = default;
+  explicit io_context_pool(std::size_t pool_size);
   ~io_context_pool();
 
   /// Run all io_context objects in the pool.
@@ -74,6 +74,9 @@ private:
 
   /// Threads to share handlers posted to the io_context
   std::vector<std::thread> threads;
+
+  /// The desired number of threads on which the io_context run is spawned
+  std::size_t concurrency{0};
 };
 
 } // namespace asio_http2

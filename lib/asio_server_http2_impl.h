@@ -45,6 +45,7 @@ public:
   boost::system::error_code listen_and_serve(
       boost::system::error_code &ec, boost::asio::ssl::context *tls_context,
       const std::string &address, const std::string &port, bool asynchronous);
+  void num_threads(size_t num_threads);
   void backlog(int backlog);
   void tls_handshake_timeout(const std::chrono::microseconds &t);
   void read_timeout(const std::chrono::microseconds &t);
@@ -56,6 +57,7 @@ public:
 
 private:
   std::unique_ptr<server> server_;
+  std::size_t num_threads_;
   int backlog_;
   serve_mux mux_;
   std::chrono::microseconds tls_handshake_timeout_;

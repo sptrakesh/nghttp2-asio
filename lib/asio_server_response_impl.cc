@@ -129,7 +129,7 @@ void response_impl::resume() {
   handler->resume(*strm_);
 }
 
-boost::asio::io_context &response_impl::executor() {
+boost::asio::strand<boost::asio::io_context::executor_type> &response_impl::executor() {
   return strm_->handler()->executor();
 }
 

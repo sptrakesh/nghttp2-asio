@@ -65,6 +65,8 @@ boost::system::error_code http2::listen_and_serve(
   return impl_->listen_and_serve(ec, &tls_context, address, port, asynchronous);
 }
 
+void http2::num_threads(size_t num_threads) { impl_->num_threads(num_threads); }
+
 void http2::backlog(int backlog) { impl_->backlog(backlog); }
 
 void http2::tls_handshake_timeout(const std::chrono::microseconds &t) {

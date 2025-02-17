@@ -43,6 +43,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/array.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/asio/system_timer.hpp>
 
 #include <nghttp2/asio_http2_server.h>
@@ -51,13 +52,6 @@
 #include "asio_server_serve_mux.h"
 #include "util.h"
 #include "template.h"
-
-#if BOOST_VERSION >= 107000
-#  define GET_io_context(s)                                                    \
-    ((boost::asio::io_context &)(s).get_executor().context())
-#else
-#  define GET_io_context(s) ((s).get_io_context())
-#endif
 
 namespace nghttp2 {
 
@@ -73,13 +67,15 @@ public:
   /// Construct a connection with the given io_context.
   template <typename... SocketArgs>
   explicit connection(
+      boost::asio::strand<boost::asio::io_context::executor_type> &strand,
       serve_mux &mux,
       std::chrono::microseconds tls_handshake_timeout,
       std::chrono::microseconds read_timeout,
       SocketArgs &&...args)
       : socket_(std::forward<SocketArgs>(args)...),
+        strand_(strand),
         mux_(mux),
-        deadline_(GET_io_context(socket_)),
+        deadline_(strand_),
         tls_handshake_timeout_(tls_handshake_timeout),
         read_timeout_(read_timeout),
         writing_(false),
@@ -101,7 +97,7 @@ public:
     };
 
     handler_ = std::make_shared<http2_handler>(
-        GET_io_context(socket_), socket_.lowest_layer().remote_endpoint(ec),
+        strand_, socket_.lowest_layer().remote_endpoint(ec),
         make_writefun(), mux_);
     if (handler_->start() != 0) {
       stop();
@@ -237,6 +233,7 @@ public:
 
 private:
   socket_type socket_;
+  boost::asio::strand<boost::asio::io_context::executor_type> strand_;
 
   serve_mux &mux_;
 

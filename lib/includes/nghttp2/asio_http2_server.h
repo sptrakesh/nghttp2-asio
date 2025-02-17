@@ -27,7 +27,7 @@
 
 #include <nghttp2/asio_http2.h>
 
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace nghttp2 {
@@ -116,8 +116,8 @@ public:
   // Returns status code.
   unsigned int status_code() const;
 
-  // Returns boost::asio::io_context this response is running on.
-  boost::asio::io_context &executor() const;
+  // Returns boost::asio::io_context::strand this response is running on.
+  boost::asio::strand<boost::asio::io_context::executor_type> &executor() const;
 
   // Application must not call this directly.
   response_impl &impl() const;
@@ -193,6 +193,10 @@ public:
   // if they contains . or .. elements, they are redirected to an
   // equivalent .- and ..-free URL.
   bool handle(std::string pattern, request_cb cb);
+
+  // Sets number of native threads to handle incoming HTTP request.
+  // It defaults to 1.
+  void num_threads(size_t num_threads);
 
   // Sets the maximum length to which the queue of pending
   // connections.

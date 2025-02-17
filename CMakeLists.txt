@@ -30,7 +30,7 @@ project(nghttp2-asio VERSION 1.1.0)
 #  https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 set(LT_CURRENT  1)
 set(LT_REVISION 1)
-set(LT_AGE      0)
+set(LT_AGE      1)
 
 if (POLICY CMP0167)
   cmake_policy(SET CMP0167 NEW)

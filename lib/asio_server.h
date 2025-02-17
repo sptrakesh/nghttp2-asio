@@ -44,6 +44,7 @@
 #include <memory>
 
 #include <boost/noncopyable.hpp>
+#include <boost/asio/strand.hpp>
 
 #include <nghttp2/asio_http2_server.h>
 
@@ -63,7 +64,8 @@ using ssl_socket = boost::asio::ssl::stream<tcp::socket>;
 
 class server : private boost::noncopyable {
 public:
-  explicit server(std::chrono::microseconds tls_handshake_timeout,
+  explicit server(std::size_t io_context_pool_size,
+                  std::chrono::microseconds tls_handshake_timeout,
                   std::chrono::microseconds read_timeout);
 
   boost::system::error_code
@@ -81,11 +83,17 @@ public:
   const std::vector<int> ports() const;
 
 private:
+  /// Struct used to tie the executing strand and TCP acceptor
+  struct Acceptor {
+    boost::asio::strand<boost::asio::io_context::executor_type> strand;
+    tcp::acceptor acceptor;
+  };
+
   /// Initiate an asynchronous accept operation.
-  void start_accept(tcp::acceptor &acceptor, serve_mux &mux);
+  void start_accept(Acceptor &acceptor, serve_mux &mux);
   /// Same as above but with tls_context
   void start_accept(boost::asio::ssl::context &tls_context,
-                    tcp::acceptor &acceptor, serve_mux &mux);
+                    Acceptor &acceptor, serve_mux &mux);
 
   /// Resolves address and bind socket to the resolved addresses.
   boost::system::error_code bind_and_listen(boost::system::error_code &ec,
@@ -98,7 +106,7 @@ private:
   io_context_pool io_context_pool_;
 
   /// Acceptor used to listen for incoming connections.
-  std::vector<tcp::acceptor> acceptors_;
+  std::vector<Acceptor> acceptors_;
 
   std::unique_ptr<boost::asio::ssl::context> ssl_ctx_;
 

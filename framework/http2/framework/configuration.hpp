@@ -22,6 +22,10 @@ namespace spt::http2::framework
     /// The hostname to bind to.  Default is to bind on all local hostnames.
     std::string host{ "0.0.0.0" };
 
+    /// The number of server threads for handling requests.  The `boost::asio::io_context` instance
+    /// is `run` on the specified number of threads.
+    std::size_t numberOfServerThreads{ std::thread::hardware_concurrency() };
+
     /// The number of worker threads for handling requests.  Client requests are routed
     /// to the configured handler function, which is run on a worker thread pool.  This is
     /// done to offload processing from the server request handling event loop.  Default is
