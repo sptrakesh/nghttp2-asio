@@ -26,6 +26,8 @@
 
 #include <openssl/ssl.h>
 
+#include <memory>
+
 #include "asio_server.h"
 #include "util.h"
 #include "tls.h"
