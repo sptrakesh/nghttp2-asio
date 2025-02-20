@@ -44,7 +44,6 @@
 #include <memory>
 
 #include <boost/noncopyable.hpp>
-#include <boost/asio/strand.hpp>
 
 #include <nghttp2/asio_http2_server.h>
 
