@@ -82,17 +82,11 @@ public:
   const std::vector<int> ports() const;
 
 private:
-  /// Struct used to tie the executing strand and TCP acceptor
-  struct Acceptor {
-    boost::asio::strand<boost::asio::io_context::executor_type> strand;
-    tcp::acceptor acceptor;
-  };
-
   /// Initiate an asynchronous accept operation.
-  void start_accept(Acceptor &acceptor, serve_mux &mux);
+  void start_accept(tcp::acceptor &acceptor, serve_mux &mux);
   /// Same as above but with tls_context
   void start_accept(boost::asio::ssl::context &tls_context,
-                    Acceptor &acceptor, serve_mux &mux);
+                    tcp::acceptor &acceptor, serve_mux &mux);
 
   /// Resolves address and bind socket to the resolved addresses.
   boost::system::error_code bind_and_listen(boost::system::error_code &ec,
@@ -105,7 +99,7 @@ private:
   io_context_pool io_context_pool_;
 
   /// Acceptor used to listen for incoming connections.
-  std::vector<Acceptor> acceptors_;
+  std::vector<tcp::acceptor> acceptors_;
 
   std::unique_ptr<boost::asio::ssl::context> ssl_ctx_;
 
