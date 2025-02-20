@@ -40,6 +40,8 @@
 #include "asio_common.h"
 #include "util.h"
 
+#include <boost/asio/strand.hpp>
+
 namespace nghttp2 {
 namespace asio_http2 {
 namespace server {
