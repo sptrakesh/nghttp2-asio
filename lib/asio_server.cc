@@ -40,8 +40,6 @@
 #include "asio_common.h"
 #include "util.h"
 
-#include <boost/asio/strand.hpp>
-
 namespace nghttp2 {
 namespace asio_http2 {
 namespace server {
@@ -129,10 +127,9 @@ void server::start_accept(boost::asio::ssl::context &tls_context,
     return;
   }
 
-  auto strand = boost::asio::make_strand(io_context_pool_.executor());
   auto new_connection = std::make_shared<connection<ssl_socket>>(
-      strand, mux, tls_handshake_timeout_, read_timeout_,
-      strand, tls_context);
+      io_context_pool_.executor(), mux, tls_handshake_timeout_, read_timeout_,
+      tls_context);
 
   acceptor.async_accept(
       new_connection->socket().lowest_layer(),
@@ -169,10 +166,8 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
     return;
   }
 
-  auto strand = boost::asio::make_strand(io_context_pool_.executor());
   auto new_connection = std::make_shared<connection<tcp::socket>>(
-      strand, mux, tls_handshake_timeout_, read_timeout_,
-      strand);
+      io_context_pool_.executor(), mux, tls_handshake_timeout_, read_timeout_);
 
   acceptor.async_accept(
       new_connection->socket(), [this, &acceptor, &mux, new_connection](

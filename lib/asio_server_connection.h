@@ -67,13 +67,13 @@ public:
   /// Construct a connection with the given io_context.
   template <typename... SocketArgs>
   explicit connection(
-      boost::asio::strand<boost::asio::io_context::executor_type> &strand,
+      boost::asio::io_context &ioc,
       serve_mux &mux,
       std::chrono::microseconds tls_handshake_timeout,
       std::chrono::microseconds read_timeout,
       SocketArgs &&...args)
-      : socket_(std::forward<SocketArgs>(args)...),
-        strand_(strand),
+      : strand_(boost::asio::make_strand(ioc)),
+        socket_(strand_, std::forward<SocketArgs>(args)...),
         mux_(mux),
         deadline_(strand_),
         tls_handshake_timeout_(tls_handshake_timeout),
@@ -232,8 +232,8 @@ public:
   }
 
 private:
-  socket_type socket_;
   boost::asio::strand<boost::asio::io_context::executor_type> strand_;
+  socket_type socket_;
 
   serve_mux &mux_;
 
