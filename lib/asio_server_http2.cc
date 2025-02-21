@@ -69,11 +69,11 @@ void http2::num_threads(size_t num_threads) { impl_->num_threads(num_threads); }
 
 void http2::backlog(int backlog) { impl_->backlog(backlog); }
 
-void http2::tls_handshake_timeout(const boost::posix_time::time_duration &t) {
+void http2::tls_handshake_timeout(const std::chrono::microseconds &t) {
   impl_->tls_handshake_timeout(t);
 }
 
-void http2::read_timeout(const boost::posix_time::time_duration &t) {
+void http2::read_timeout(const std::chrono::microseconds &t) {
   impl_->read_timeout(t);
 }
 
@@ -85,8 +85,8 @@ void http2::stop() { impl_->stop(); }
 
 void http2::join() { return impl_->join(); }
 
-const std::vector<std::shared_ptr<boost::asio::io_context>> & http2::executors() const {
-  return impl_->executors();
+boost::asio::io_context& http2::executor() const {
+  return impl_->executor();
 }
 
 std::vector<int> http2::ports() const { return impl_->ports(); }

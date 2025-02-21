@@ -27,7 +27,7 @@
 
 #include <nghttp2/asio_http2.h>
 
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace nghttp2 {
@@ -115,8 +115,8 @@ public:
   // Returns status code.
   unsigned int status_code() const;
 
-  // Returns boost::asio::io_context this response is running on.
-  boost::asio::io_context &executor() const;
+  // Returns boost::asio::io_context::strand this response is running on.
+  boost::asio::strand<boost::asio::io_context::executor_type> &executor() const;
 
   // Application must not call this directly.
   response_impl &impl() const;
@@ -202,10 +202,10 @@ public:
   void backlog(int backlog);
 
   // Sets TLS handshake timeout, which defaults to 60 seconds.
-  void tls_handshake_timeout(const boost::posix_time::time_duration &t);
+  void tls_handshake_timeout(const std::chrono::microseconds&t);
 
   // Sets read timeout, which defaults to 60 seconds.
-  void read_timeout(const boost::posix_time::time_duration &t);
+  void read_timeout(const std::chrono::microseconds &t);
 
   // Gracefully stop http2 server
   void stop();
@@ -214,7 +214,7 @@ public:
   void join();
 
   // Get access to the io_context objects.
-  const std::vector<std::shared_ptr<boost::asio::io_context>> & executors() const;
+  boost::asio::io_context & executor() const;
 
   // Returns a vector with the ports in use
   std::vector<int> ports() const;

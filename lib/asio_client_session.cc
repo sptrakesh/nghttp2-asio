@@ -40,14 +40,14 @@ using boost::asio::ip::tcp;
 session::session(boost::asio::io_context &io_context, const std::string &host,
                  const std::string &service)
     : impl_(std::make_shared<session_tcp_impl>(
-          io_context, host, service, boost::posix_time::seconds(60))) {
+          io_context, host, service, std::chrono::seconds(60))) {
   impl_->start_resolve(host, service);
 }
 
 session::session(boost::asio::io_context &io_context, const std::string &host,
     const std::string &service, connect_cb ccb, error_cb ecb)
     : impl_(std::make_shared<session_tcp_impl>(
-          io_context, host, service, boost::posix_time::seconds(60))) {
+          io_context, host, service, std::chrono::seconds(60))) {
   impl_->on_connect(std::move(ccb));
   impl_->on_error(std::move(ecb));
   impl_->start_resolve(host, service);
@@ -58,13 +58,13 @@ session::session(boost::asio::io_context &io_context,
                  const std::string &host, const std::string &service)
     : impl_(std::make_shared<session_tcp_impl>(
           io_context, local_endpoint, host, service,
-          boost::posix_time::seconds(60))) {
+          std::chrono::seconds(60))) {
   impl_->start_resolve(host, service);
 }
 
 session::session(boost::asio::io_context &io_context, const std::string &host,
                  const std::string &service,
-                 const boost::posix_time::time_duration &connect_timeout)
+                 std::chrono::microseconds connect_timeout)
     : impl_(std::make_shared<session_tcp_impl>(io_context, host, service,
                                                connect_timeout)) {
   impl_->start_resolve(host, service);
@@ -73,7 +73,7 @@ session::session(boost::asio::io_context &io_context, const std::string &host,
 session::session(boost::asio::io_context &io_context,
                  const boost::asio::ip::tcp::endpoint &local_endpoint,
                  const std::string &host, const std::string &service,
-                 const boost::posix_time::time_duration &connect_timeout)
+                 std::chrono::microseconds connect_timeout)
     : impl_(std::make_shared<session_tcp_impl>(io_context, local_endpoint, host,
                                                service, connect_timeout)) {
   impl_->start_resolve(host, service);
@@ -83,14 +83,14 @@ session::session(boost::asio::io_context &io_context,
                  boost::asio::ssl::context &tls_ctx, const std::string &host,
                  const std::string &service)
     : impl_(std::make_shared<session_tls_impl>(
-          io_context, tls_ctx, host, service, boost::posix_time::seconds(60))) {
+          io_context, tls_ctx, host, service, std::chrono::seconds(60))) {
   impl_->start_resolve(host, service);
 }
 
 session::session(boost::asio::io_context &io_context,
                  boost::asio::ssl::context &tls_ctx, const std::string &host,
                  const std::string &service,
-                 const boost::posix_time::time_duration &connect_timeout)
+                 std::chrono::microseconds connect_timeout)
     : impl_(std::make_shared<session_tls_impl>(io_context, tls_ctx, host,
                                                service, connect_timeout)) {
   impl_->start_resolve(host, service);
@@ -147,7 +147,7 @@ const request *session::submit(boost::system::error_code &ec,
                        std::move(prio));
 }
 
-void session::read_timeout(const boost::posix_time::time_duration &t) {
+void session::read_timeout(std::chrono::microseconds t) {
   impl_->read_timeout(t);
 }
 

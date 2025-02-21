@@ -22,14 +22,14 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 # XXX using 1.8.90 instead of 1.9.0-DEV
-project(nghttp2-asio VERSION 0.0.90)
+project(nghttp2-asio VERSION 1.1.0)
 
 # See versioning rule:
 #  https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-set(LT_CURRENT  0)
-set(LT_REVISION 0)
+set(LT_CURRENT  1)
+set(LT_REVISION 1)
 set(LT_AGE      0)
 
 if (POLICY CMP0167)
@@ -38,12 +38,16 @@ endif()
 
 set(CMAKE_CXX_STANDARD 23)
 
+# Set the NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS value for server.  Originally hard-coded
+# to 100. Converted to compile time definition.
+add_compile_definitions(SERVER_MAX_CONCURRENT_STREAMS=1024)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 
 math(EXPR LT_SOVERSION "${LT_CURRENT} - ${LT_AGE}")
 set(LT_VERSION "${LT_SOVERSION}.${LT_AGE}.${LT_REVISION}")
-set(PACKAGE_VERSION     "${PROJECT_VERSION}")
+set(PACKAGE_VERSION "${PROJECT_VERSION}")
 HexVersion(PACKAGE_VERSION_NUM ${PROJECT_VERSION_MAJOR} ${PROJECT_VERSION_MINOR} ${PROJECT_VERSION_PATCH})
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -58,9 +62,22 @@ endif()
 
 include(GNUInstallDirs)
 
+if (WIN32)
+  if (POLICY CMP0111)
+    cmake_policy(SET CMP0111 NEW)
+  endif (POLICY CMP0111)
+  if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+  endif()
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "/EHsc /await:strict /utf-8 /DNOMINMAX")
+    add_compile_definitions(_WIN32_WINNT=0x0A000007)
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+endif(WIN32)
+
 # Auto-detection of features that can be toggled
 find_package(OpenSSL 1.0.1)
-find_package(Libnghttp2 1.51.0)
+find_package(Libnghttp2 1.64.0)
 
 include(CMakeOptions.txt)
 
@@ -79,7 +96,7 @@ else()
 endif()
 
 include(ExtractValidFlags)
-foreach(_cxx1x_flag -std=c++14)
+foreach(_cxx1x_flag)
   extract_valid_cxx_flags(_cxx1x_flag_supported ${_cxx1x_flag})
   if(_cxx1x_flag_supported)
     set(CXX1XCXXFLAGS ${_cxx1x_flag})
@@ -140,10 +157,13 @@ else()
   set(OPENSSL_LIBRARIES     "")
 endif()
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME ON)
-set(Boost_USE_MULTITHREADED ON)
-set(OPENSSL_USE_STATIC_LIBS TRUE)
+if (BOOST_STATIC_LIBS)
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_USE_STATIC_RUNTIME ON)
+  set(Boost_USE_MULTITHREADED ON)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif (BOOST_STATIC_LIBS)
+
 find_package(Boost 1.86.0 REQUIRED system thread url)
 
 # Checks for header files.
@@ -337,8 +357,12 @@ set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_PROJECT_NAME}")
 install(FILES README.rst DESTINATION "${CMAKE_INSTALL_DOCDIR}")
 
 add_subdirectory(lib)
-add_subdirectory(test)
-add_subdirectory(example)
+if (BUILD_EXAMPLE)
+  add_subdirectory(test)
+endif (BUILD_EXAMPLE)
+if (BUILD_TESTING)
+  add_subdirectory(example)
+endif (BUILD_TESTING)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type)
 message(STATUS "summary of build options:
@@ -361,3 +385,11 @@ message(STATUS "summary of build options:
       Boost::System:  ${Boost_SYSTEM_LIBRARY}
       Boost::Thread:  ${Boost_THREAD_LIBRARY}
 ")
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "Nghttp2AsioConfig.cmake"
+    VERSION ${nghttp2asio_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+install(FILES "Nghttp2AsioConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/Nghttp2AsioConfig.cmake" DESTINATION lib/cmake/Nghttp2Asio)

@@ -234,12 +234,12 @@ int on_frame_not_send_callback(nghttp2_session *session,
 }
 } // namespace
 
-http2_handler::http2_handler(boost::asio::io_context &io_context,
+http2_handler::http2_handler(boost::asio::strand<boost::asio::io_context::executor_type> strand,
                              boost::asio::ip::tcp::endpoint ep,
                              connection_write writefun, serve_mux &mux)
     : writefun_(writefun),
       mux_(mux),
-      io_context_(io_context),
+      strand_(strand),
       remote_ep_(ep),
       session_(nullptr),
       buf_(nullptr),
@@ -298,7 +298,11 @@ int http2_handler::start() {
     return -1;
   }
 
+#ifdef SERVER_MAX_CONCURRENT_STREAMS
+  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, SERVER_MAX_CONCURRENT_STREAMS};
+#else
   nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100};
+#endif
   nghttp2_submit_settings(session_, NGHTTP2_FLAG_NONE, &ent, 1);
 
   return 0;
@@ -415,7 +419,7 @@ void http2_handler::signal_write() {
   if (!inside_callback_ && !write_signaled_) {
     write_signaled_ = true;
     auto self = shared_from_this();
-    boost::asio::post(io_context_.get_executor(), [self]() { self->initiate_write(); });
+    boost::asio::post(strand_, [self]() { self->initiate_write(); });
   }
 }
 
@@ -478,7 +482,7 @@ response *http2_handler::push_promise(boost::system::error_code &ec,
   return &promised_strm->response();
 }
 
-boost::asio::io_context &http2_handler::executor() { return io_context_; }
+boost::asio::strand<boost::asio::io_context::executor_type> &http2_handler::executor() { return strand_; }
 
 const boost::asio::ip::tcp::endpoint &http2_handler::remote_endpoint() {
   return remote_ep_;

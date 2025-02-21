@@ -32,6 +32,7 @@
 #include <string>
 
 #include <boost/array.hpp>
+#include <boost/asio/strand.hpp>
 
 #include <nghttp2/asio_http2_server.h>
 
@@ -53,7 +54,7 @@ using connection_write = std::function<void(void)>;
 
 class http2_handler : public std::enable_shared_from_this<http2_handler> {
 public:
-  http2_handler(boost::asio::io_context &io_context,
+  http2_handler(boost::asio::strand<boost::asio::io_context::executor_type> strand,
                 boost::asio::ip::tcp::endpoint ep, connection_write writefun,
                 serve_mux &mux);
 
@@ -88,7 +89,7 @@ public:
 
   void signal_write();
 
-  boost::asio::io_context &executor();
+  boost::asio::strand<boost::asio::io_context::executor_type> &executor();
 
   const boost::asio::ip::tcp::endpoint &remote_endpoint();
 
@@ -154,7 +155,7 @@ private:
   std::map<int32_t, std::shared_ptr<stream>> streams_;
   connection_write writefun_;
   serve_mux &mux_;
-  boost::asio::io_context &io_context_;
+  boost::asio::strand<boost::asio::io_context::executor_type> strand_;
   boost::asio::ip::tcp::endpoint remote_ep_;
   nghttp2_session *session_;
   const uint8_t *buf_;

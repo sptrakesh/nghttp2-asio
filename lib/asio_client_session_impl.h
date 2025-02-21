@@ -28,6 +28,7 @@
 #include "nghttp2_config.h"
 
 #include <boost/array.hpp>
+#include <boost/asio/system_timer.hpp>
 
 #include <nghttp2/asio_http2_client.h>
 
@@ -44,7 +45,7 @@ using boost::asio::ip::tcp;
 class session_impl : public std::enable_shared_from_this<session_impl> {
 public:
   session_impl(boost::asio::io_context &io_context,
-               const boost::posix_time::time_duration &connect_timeout);
+               std::chrono::microseconds connect_timeout);
   virtual ~session_impl();
 
   void start_resolve(const std::string &host, const std::string &service);
@@ -94,7 +95,7 @@ public:
   void do_read();
   void do_write();
 
-  void read_timeout(const boost::posix_time::time_duration &t);
+  void read_timeout(std::chrono::microseconds t);
 
   void stop();
   bool stopped() const;
@@ -120,11 +121,11 @@ private:
   connect_cb connect_cb_;
   error_cb error_cb_;
 
-  boost::asio::deadline_timer deadline_;
-  boost::posix_time::time_duration connect_timeout_;
-  boost::posix_time::time_duration read_timeout_;
+  boost::asio::system_timer deadline_;
+  std::chrono::microseconds connect_timeout_;
+  std::chrono::microseconds read_timeout_;
 
-  boost::asio::deadline_timer ping_;
+  boost::asio::system_timer ping_;
 
   nghttp2_session *session_;
 

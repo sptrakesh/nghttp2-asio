@@ -45,8 +45,8 @@ namespace asio_http2 {
 namespace server {
 
 server::server(std::size_t io_context_pool_size,
-               const boost::posix_time::time_duration &tls_handshake_timeout,
-               const boost::posix_time::time_duration &read_timeout)
+               std::chrono::microseconds tls_handshake_timeout,
+               std::chrono::microseconds read_timeout)
     : io_context_pool_(io_context_pool_size),
       tls_handshake_timeout_(tls_handshake_timeout),
       read_timeout_(read_timeout) {}
@@ -81,32 +81,32 @@ boost::system::error_code server::bind_and_listen(boost::system::error_code &ec,
                                                   int backlog) {
   // Open the acceptor with the option to reuse the address (i.e.
   // SO_REUSEADDR).
-  tcp::resolver resolver(io_context_pool_.get_executor());
+  tcp::resolver resolver(io_context_pool_.executor());
   auto it = resolver.resolve(address, port, ec);
   if (ec) {
     return ec;
   }
 
   for (const auto &endpoint : it) {
-    auto acceptor = tcp::acceptor(io_context_pool_.get_executor());
+    acceptors_.emplace_back(io_context_pool_.executor());
 
-    if (acceptor.open(endpoint.endpoint().protocol(), ec)) {
+    if (acceptors_.back().open(endpoint.endpoint().protocol(), ec)) {
+      acceptors_.pop_back();
       continue;
     }
 
-    acceptor.set_option(tcp::acceptor::reuse_address(true));
+    acceptors_.back().set_option(tcp::acceptor::reuse_address(true));
 
-    if (acceptor.bind(endpoint, ec)) {
+    if (acceptors_.back().bind(endpoint, ec)) {
+      acceptors_.pop_back();
       continue;
     }
 
-    if (acceptor.listen(
+    if (acceptors_.back().listen(
             backlog == -1 ? boost::asio::socket_base::max_listen_connections : backlog,
             ec)) {
-      continue;
+      acceptors_.pop_back();
     }
-
-    acceptors_.push_back(std::move(acceptor));
   }
 
   if (acceptors_.empty()) {
@@ -128,8 +128,8 @@ void server::start_accept(boost::asio::ssl::context &tls_context,
   }
 
   auto new_connection = std::make_shared<connection<ssl_socket>>(
-      mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.get_executor(), tls_context);
+      io_context_pool_.executor(), mux, tls_handshake_timeout_, read_timeout_,
+      tls_context);
 
   acceptor.async_accept(
       new_connection->socket().lowest_layer(),
@@ -167,8 +167,7 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
   }
 
   auto new_connection = std::make_shared<connection<tcp::socket>>(
-      mux, tls_handshake_timeout_, read_timeout_,
-      io_context_pool_.get_executor());
+      io_context_pool_.executor(), mux, tls_handshake_timeout_, read_timeout_);
 
   acceptor.async_accept(
       new_connection->socket(), [this, &acceptor, &mux, new_connection](
@@ -193,9 +192,8 @@ void server::stop() {
 
 void server::join() { io_context_pool_.join(); }
 
-const std::vector<std::shared_ptr<boost::asio::io_context>> &
-server::executors() const {
-  return io_context_pool_.executors();
+boost::asio::io_context & server::executor() {
+  return io_context_pool_.executor();
 }
 
 const std::vector<int> server::ports() const {

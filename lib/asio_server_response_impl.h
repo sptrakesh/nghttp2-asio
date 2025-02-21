@@ -28,6 +28,7 @@
 #include "nghttp2_config.h"
 
 #include <nghttp2/asio_http2_server.h>
+#include <boost/asio/strand.hpp>
 
 namespace nghttp2 {
 namespace asio_http2 {
@@ -58,7 +59,7 @@ public:
   response *push(boost::system::error_code &ec, std::string method,
                  std::string raw_path_query, header_map) const;
 
-  boost::asio::io_context &executor();
+  boost::asio::strand<boost::asio::io_context::executor_type> &executor();
 
   void start_response();
 

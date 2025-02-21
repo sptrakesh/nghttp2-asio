@@ -8,7 +8,8 @@ set_source_files_properties(${cxx_sources} PROPERTIES
   COMPILE_FLAGS "${WARNCXXFLAGS} ${CXX1XCXXFLAGS}")
 
 set(NGHTTP2_ASIO_SOURCES
-  util.cc http2.cc
+  util.cc
+  http2.cc
   timegm.c
   asio_common.cc
   asio_io_service_pool.cc
@@ -44,50 +45,51 @@ if (NOT ENABLE_SHARED_LIB AND NOT ENABLE_STATIC_LIB)
   endif()
 endif()
 
-# Object lib used for both static and shared lib
-add_library(nghttp2_asio_object OBJECT ${NGHTTP2_ASIO_SOURCES})
-target_include_directories(nghttp2_asio_object
+set(Target_Name "nghttp2_asio")
+if (ENABLE_SHARED_LIB)
+  add_library(${Target_Name} SHARED ${NGHTTP2_ASIO_SOURCES})
+endif (ENABLE_SHARED_LIB)
+if (ENABLE_STATIC_LIB)
+  add_library(${Target_Name} STATIC ${NGHTTP2_ASIO_SOURCES})
+endif (ENABLE_STATIC_LIB)
+add_library(nghttp2::asio ALIAS ${Target_Name})
+
+target_compile_definitions(${Target_Name}
+  PRIVATE _FORTIFY_SOURCE=3
+)
+
+target_include_directories(${Target_Name}
   PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../third-party"
   ${LIBNGHTTP2_INCLUDE_DIRS}
   ${OPENSSL_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   INTERFACE
-  "${CMAKE_CURRENT_BINARY_DIR}/../lib/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../lib/includes"
-  "${CMAKE_CURRENT_SOURCE_DIR}/includes"
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/includes>
+  $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(nghttp2_asio_object
+target_link_libraries(${Target_Name}
   PRIVATE
   ${LIBNGHTTP2_LIBRARIES}
   ${OPENSSL_LIBRARIES}
-  PUBLIC
   ${Boost_LIBRARIES}
   Boost::url
 )
-set_target_properties(nghttp2_asio_object
+target_link_libraries(${Target_Name} INTERFACE  ${LIBNGHTTP2_LIBRARIES} ${Boost_LIBRARIES} Boost::url ${OPENSSL_LIBRARIES})
+set_target_properties(${Target_Name}
   PROPERTIES
   VERSION ${LT_VERSION}
   SOVERSION ${LT_SOVERSION}
 )
+target_compile_features(${Target_Name} INTERFACE cxx_std_23)
 
-# Public shared library
-if(ENABLE_SHARED_LIB)
-  set_property(TARGET nghttp2_asio_object PROPERTY POSITION_INDEPENDENT_CODE 1)
-  target_compile_definitions(nghttp2_asio_object PUBLIC BUILDING_NGHTTP2_ASIO)
-  add_library(nghttp2_asio SHARED)
-  target_link_libraries(nghttp2_asio PUBLIC nghttp2_asio_object)
-  install(TARGETS nghttp2_asio)
-endif()
-
-# Static library
-if(ENABLE_STATIC_LIB)
-  add_library(nghttp2_asio_static STATIC)
-  target_link_libraries(nghttp2_asio_static PUBLIC nghttp2_asio_object)
-  set_target_properties(nghttp2_asio_static PROPERTIES ARCHIVE_OUTPUT_NAME nghttp2_asio${STATIC_LIB_SUFFIX})
-  install(TARGETS nghttp2_asio_static)
-endif()
+install(TARGETS ${Target_Name} EXPORT Nghttp2AsioTargets DESTINATION lib)
+install(TARGETS ${Target_Name} DESTINATION lib)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libnghttp2_asio.pc"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+install(EXPORT Nghttp2AsioTargets
+    FILE Nghttp2AsioTargets.cmake
+    NAMESPACE nghttp2::
+    DESTINATION lib/cmake/Nghttp2Asio
+)

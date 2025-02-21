@@ -64,7 +64,7 @@ void response::resume() const { impl_->resume(); }
 
 unsigned int response::status_code() const { return impl_->status_code(); }
 
-boost::asio::io_context &response::executor() const {
+boost::asio::strand<boost::asio::io_context::executor_type> &response::executor() const {
   return impl_->executor();
 }
 

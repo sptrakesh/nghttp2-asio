@@ -24,11 +24,6 @@
  */
 #include "util.h"
 
-// Avoid min / max macros on windows
-#ifdef _WIN32
-#  define NOMINMAX
-#endif
-
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif // HAVE_TIME_H

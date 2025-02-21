@@ -7,8 +7,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <charconv>
 #include <format>
+#include <future>
 #include <iostream>
 #include <tuple>
+#include <vector>
 #include <nghttp2/asio_http2_client.h>
 #include <nghttp2/asio_http2_server.h>
 
@@ -100,6 +102,7 @@ struct Fixture {
 private:
 
   void setUp() {
+    server.num_threads( 4 ); // Using pool causes assertion error.
     server.handle("/data", data);
     server.handle("/input", receive);
     server.handle("/", root);
@@ -254,7 +257,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
     }
 
     AND_WHEN("Making request in a loop") {
-      for (auto i = 0; i < 100; i++) {
+      for (auto i = 0; i < 1024; i++) {
         INFO(std::format("Request {}", i));
         const auto json = boost::json::object{
             {"now", std::chrono::system_clock::now().time_since_epoch().count()},
@@ -279,6 +282,89 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
         REQUIRE(obj.contains("payload"));
         REQUIRE(obj.at("payload").is_object());
         CHECK(obj.at("payload").as_object() == json);
+      }
+    }
+
+    AND_WHEN("Making requests in parallel") {
+      constexpr auto total = 1024;
+      using R = std::tuple<std::string, std::string>;
+      auto vec = std::vector<std::future<R>>{};
+      vec.reserve(total);
+
+      const auto json = boost::json::object{
+        {"now", std::chrono::system_clock::now().time_since_epoch().count()},
+        {"string", "value"},
+        {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
+        {"client", "nghttp2::asio::client"}};
+
+      for (auto i = 0; i < total; i++) {
+        vec.push_back(std::async(std::launch::async, [json]() {
+          return ptest::response("/input", boost::json::serialize(json));
+        }));
+      }
+
+      for (auto& fut : vec) {
+        const auto [ct, resp] = fut.get();
+        CHECK(ct == "application/json");
+        REQUIRE_FALSE(resp.empty());
+
+        auto ec = boost::system::error_code{};
+        auto parsed = boost::json::parse(resp, ec);
+        REQUIRE_FALSE(ec);
+        REQUIRE(parsed.is_object());
+
+        auto& obj = parsed.as_object();
+        REQUIRE(obj.contains("received"));
+        REQUIRE(obj.at("received").is_int64());
+        CHECK(obj.at("received").as_int64() > json.at("now").as_int64());
+        REQUIRE(obj.contains("server"));
+        REQUIRE(obj.at("server").is_string());
+        REQUIRE(obj.contains("payload"));
+        REQUIRE(obj.at("payload").is_object());
+        CHECK(obj.at("payload").as_object() == json);
+      }
+    }
+
+    AND_WHEN("Making requests in parallel in a loop") {
+      using R = std::tuple<std::string, std::string>;
+    constexpr auto total = 128;
+
+      const auto json = boost::json::object{
+        {"now", std::chrono::system_clock::now().time_since_epoch().count()},
+        {"string", "value"},
+        {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
+        {"client", "nghttp2::asio::client"}};
+
+      for (auto i = 0; i < 16; i++) {
+        auto vec = std::vector<std::future<R>>{};
+        vec.reserve(total);
+
+        for (auto j = 0; j < total; j++) {
+          vec.push_back(std::async(std::launch::async, [json]() {
+            return ptest::response("/input", boost::json::serialize(json));
+          }));
+        }
+
+        for (auto& fut : vec) {
+          const auto [ct, resp] = fut.get();
+          CHECK(ct == "application/json");
+          REQUIRE_FALSE(resp.empty());
+
+          auto ec = boost::system::error_code{};
+          auto parsed = boost::json::parse(resp, ec);
+          REQUIRE_FALSE(ec);
+          REQUIRE(parsed.is_object());
+
+          auto& obj = parsed.as_object();
+          REQUIRE(obj.contains("received"));
+          REQUIRE(obj.at("received").is_int64());
+          CHECK(obj.at("received").as_int64() > json.at("now").as_int64());
+          REQUIRE(obj.contains("server"));
+          REQUIRE(obj.at("server").is_string());
+          REQUIRE(obj.contains("payload"));
+          REQUIRE(obj.at("payload").is_object());
+          CHECK(obj.at("payload").as_object() == json);
+        }
       }
     }
   }
