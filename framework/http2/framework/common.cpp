@@ -131,3 +131,17 @@ void spt::http2::framework::cors( const nghttp2::asio_http2::server::request& re
   res.write_head( 204, std::move( hdrs ) );
   res.end( "" );
 }
+
+bool spt::http2::framework::shouldCompress( const Request& req )
+{
+  auto iter = req.header.find( "accept-encoding" );
+  if ( iter == std::cend( req.header ) ) iter = req.header.find( "Accept-Encoding" );
+  return iter != std::cend( req.header ) && iter->second.value.contains( "gzip" );
+}
+
+bool spt::http2::framework::isCompressed( const Request& req )
+{
+  auto iter = req.header.find( "content-encoding" );
+  if ( iter == std::cend( req.header ) ) iter = req.header.find( "Content-Encoding" );
+  return iter != std::cend( req.header ) && iter->second.value.contains( "gzip" );
+}

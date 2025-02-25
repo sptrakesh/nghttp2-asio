@@ -43,6 +43,20 @@ namespace spt::http2::framework
   void cors( const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res, const Configuration& configuration );
 
   /**
+   * Check if the client requested `gzip` compressed response.
+   * @param req The HTTP request structure
+   * @return Return `true` if the `accept-encoding` header contains the value `gzip`.
+   */
+  bool shouldCompress( const Request& req );
+
+  /**
+   * Check if the client input payload is `gzip` compressed.
+   * @param req The HTTP request structure.
+   * @return Return `true` if the `content-encoding` header value contains the value `gzip`.
+   */
+  bool isCompressed( const Request& req );
+
+  /**
    * Generate a standard error response with a JSON body.
    * @tparam Resp The type of response to generate
    * @param code The HTTP status code to respond with.

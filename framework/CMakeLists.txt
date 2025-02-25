@@ -20,8 +20,8 @@ target_include_directories(${Target_Name}
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(${Target_Name} PRIVATE nghttp2::asio Boost::json fmt::fmt)
-target_link_libraries(${Target_Name} INTERFACE nghttp2::asio Boost::json fmt::fmt)
+target_link_libraries(${Target_Name} PRIVATE nghttp2::asio Boost::json fmt::fmt z)
+target_link_libraries(${Target_Name} INTERFACE nghttp2::asio Boost::json fmt::fmt z)
 
 install(TARGETS ${Target_Name} EXPORT Http2FrameworkTargets DESTINATION lib)
 install (
