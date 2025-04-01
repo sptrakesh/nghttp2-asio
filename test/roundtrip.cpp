@@ -257,7 +257,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
     }
 
     AND_WHEN("Making request in a loop") {
-      for (auto i = 0; i < 1024; i++) {
+      for (auto i = 0; i < 1024; ++i) {
         INFO(std::format("Request {}", i));
         const auto json = boost::json::object{
             {"now", std::chrono::system_clock::now().time_since_epoch().count()},
@@ -297,7 +297,7 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
         {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
         {"client", "nghttp2::asio::client"}};
 
-      for (auto i = 0; i < total; i++) {
+      for (auto i = 0; i < total; ++i) {
         vec.push_back(std::async(std::launch::async, [json]() {
           return ptest::response("/input", boost::json::serialize(json));
         }));
@@ -335,11 +335,11 @@ TEST_CASE_PERSISTENT_FIXTURE(ptest::Fixture, "Testing server using client", "[ro
         {"nested", boost::json::object{{"integer", 1234}, {"number", 1234.5678}}},
         {"client", "nghttp2::asio::client"}};
 
-      for (auto i = 0; i < 16; i++) {
+      for (auto i = 0; i < 16; ++i) {
         auto vec = std::vector<std::future<R>>{};
         vec.reserve(total);
 
-        for (auto j = 0; j < total; j++) {
+        for (auto j = 0; j < total; ++j) {
           vec.push_back(std::async(std::launch::async, [json]() {
             return ptest::response("/input", boost::json::serialize(json));
           }));
