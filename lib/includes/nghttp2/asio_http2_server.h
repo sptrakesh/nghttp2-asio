@@ -190,7 +190,7 @@ public:
   //   "http://www.google.com/".
   //
   // Just like ServeMux in golang, URL request path is sanitized and
-  // if they contains . or .. elements, they are redirected to an
+  // if they contain . or .. elements, they are redirected to an
   // equivalent .- and ..-free URL.
   bool handle(std::string pattern, request_cb cb);
 
@@ -203,7 +203,7 @@ public:
   void backlog(int backlog);
 
   // Sets TLS handshake timeout, which defaults to 60 seconds.
-  void tls_handshake_timeout(const std::chrono::microseconds&t);
+  void tls_handshake_timeout(const std::chrono::microseconds &t);
 
   // Sets read timeout, which defaults to 60 seconds.
   void read_timeout(const std::chrono::microseconds &t);

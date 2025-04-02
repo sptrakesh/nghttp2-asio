@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <thread>
 #include <vector>
 #include <boost/asio/socket_base.hpp>
@@ -23,14 +24,16 @@ namespace spt::http2::framework
     std::string host{ "0.0.0.0" };
 
     /// The number of server threads for handling requests.  The `boost::asio::io_context` instance
-    /// is `run` on the specified number of threads.
+    /// is `run` on the specified number of threads.  Generally one a single thread is needed since
+    /// request handling is delegated to worker threads.  Use a higher size if very high concurrency
+    /// is needed.  Default is number of CPU cores.
     std::size_t numberOfServerThreads{ std::thread::hardware_concurrency() };
 
     /// The number of worker threads for handling requests.  Client requests are routed
     /// to the configured handler function, which is run on a worker thread pool.  This is
     /// done to offload processing from the server request handling event loop.  Default is
-    /// 2x number of CPU cores.
-    std::size_t numberOfWorkerThreads{ 2 * std::thread::hardware_concurrency() };
+    /// 4x number of CPU cores.
+    std::size_t numberOfWorkerThreads{ 4 * std::thread::hardware_concurrency() };
 
     /// The maximum size of payload a client can submit to an endpoint.  If payload exceeds
     /// this size, server will respond with a `413` status.
@@ -42,5 +45,11 @@ namespace spt::http2::framework
 
     /// The port to listen on.  Default 9000.
     uint16_t port{ 9000 };
+
+    /// The TLS handshake timeout.  Default 60 seconds
+    std::chrono::microseconds tlsTimeout{ std::chrono::seconds(60) };
+
+    /// The socket read timeout.  Default 60 seconds
+    std::chrono::microseconds readTimeout{ std::chrono::seconds(60) };
   };
 }

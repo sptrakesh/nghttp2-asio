@@ -13,6 +13,7 @@
 
 #include <boost/asio/thread_pool.hpp>
 #include <boost/pfr/core_name.hpp>
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
@@ -155,6 +156,8 @@ namespace spt::http2::framework
     {
       server.backlog( configuration.backlog );
       server.num_threads( configuration.numberOfServerThreads );
+      server.tls_handshake_timeout( configuration.tlsTimeout );
+      server.read_timeout( configuration.readTimeout );
 
       server.handle( "/", [this](const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res)
       {

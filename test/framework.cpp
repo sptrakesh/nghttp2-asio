@@ -149,7 +149,14 @@ namespace
         server.start();
       }
 
-      spt::http2::framework::Configuration config;
+      static spt::http2::framework::Configuration create()
+      {
+        spt::http2::framework::Configuration config;
+        config.readTimeout = std::chrono::seconds( 5 );
+        return config;
+      }
+
+      spt::http2::framework::Configuration config{ create() };
       mutable spt::http2::framework::Server<Response> server;
     };
 
