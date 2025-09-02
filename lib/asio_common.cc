@@ -90,14 +90,12 @@ const boost::system::error_category &nghttp2_error_code_category() noexcept {
   return cat;
 }
 
-boost::system::error_code make_error_code(nghttp2_error_code ev){
-  return boost::system::error_code(static_cast<int>(ev),
-                                     nghttp2_error_code_category());
+boost::system::error_code make_error_code(nghttp2_error_code ev) {
+  return boost::system::error_code(static_cast<int>(ev), nghttp2_error_code_category());
 }
 
 generator_cb string_generator(std::string data) {
-  auto strio = std::make_shared<std::pair<std::string, size_t>>(std::move(data),
-                                                                data.size());
+  auto strio = std::make_shared<std::pair<std::string, size_t>>(std::move(data), data.size());
   return [strio](uint8_t *buf, size_t len, uint32_t *data_flags) {
     auto &data = strio->first;
     auto &left = strio->second;
@@ -141,8 +139,7 @@ generator_cb file_generator(const std::string &path) {
 generator_cb file_generator_from_fd(int fd) {
   auto d = defer_shared(FD_MAGIC(close), fd);
 
-  return [fd, d](uint8_t *buf, size_t len,
-                 uint32_t *data_flags) -> generator_cb::result_type {
+  return [fd, d](uint8_t *buf, size_t len, uint32_t *data_flags) -> generator_cb::result_type {
     ssize_t n;
     while ((n = FD_MAGIC(read)(fd, buf, len)) == -1 && errno == EINTR)
       ;

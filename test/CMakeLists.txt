@@ -8,9 +8,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-find_package(Boost 1.86.0 REQUIRED json)
-find_package(bsoncxx REQUIRED)
-
 if (APPLE)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/spt")
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/mongo")
@@ -22,6 +19,8 @@ else()
 endif (APPLE)
 
 find_package(NanoLog REQUIRED COMPONENTS nanolog)
+find_package(Boost 1.86.0 REQUIRED json)
+find_package(bsoncxx REQUIRED)
 
 file(GLOB_RECURSE test_SRCS *.cpp *.h)
 add_executable(integration ${test_SRCS} )

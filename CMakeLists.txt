@@ -164,7 +164,7 @@ if (BOOST_STATIC_LIBS)
   set(OPENSSL_USE_STATIC_LIBS TRUE)
 endif (BOOST_STATIC_LIBS)
 
-find_package(Boost 1.86.0 REQUIRED system thread url)
+find_package(Boost 1.86.0 REQUIRED thread url)
 
 # Checks for header files.
 include(CheckIncludeFile)
