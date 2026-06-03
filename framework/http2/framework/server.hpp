@@ -14,7 +14,9 @@
 #include <vector>
 
 #include <boost/asio/thread_pool.hpp>
+#ifndef __APPLE__
 #include <boost/pfr/core_name.hpp>
+#endif
 
 namespace spt::http2::framework
 {
@@ -118,12 +120,14 @@ namespace spt::http2::framework
 #ifdef HAS_NANO_LOG
       LOG_INFO << "Starting server on " << configuration.host << ":" << configuration.port;
 #if BOOST_VERSION > 108600
+#ifndef __APPLE__
       auto obj = boost::json::object{};
       boost::pfr::for_each_field_with_name( configuration, [&obj](std::string_view name, const auto& value)
       {
         obj.emplace( name, std::format( "{}", value ) );
       } );
       LOG_INFO << boost::json::serialize( obj );
+#endif
 #endif
 #endif
       boost::system::error_code ec;
