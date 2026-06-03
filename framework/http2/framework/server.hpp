@@ -9,13 +9,12 @@
 #include "stream.hpp"
 
 #include <charconv>
+#include <format>
+#include <print>
 #include <vector>
 
 #include <boost/asio/thread_pool.hpp>
 #include <boost/pfr/core_name.hpp>
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-#include <fmt/ranges.h>
 
 namespace spt::http2::framework
 {
@@ -122,7 +121,7 @@ namespace spt::http2::framework
       auto obj = boost::json::object{};
       boost::pfr::for_each_field_with_name( configuration, [&obj](std::string_view name, const auto& value)
       {
-        obj.emplace( name, fmt::format( "{}", value ) );
+        obj.emplace( name, std::format( "{}", value ) );
       } );
       LOG_INFO << boost::json::serialize( obj );
 #endif

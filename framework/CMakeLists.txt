@@ -1,7 +1,6 @@
 set(Target_Name "http2_framework")
 
 find_package(Boost REQUIRED json)
-find_package(fmt REQUIRED)
 
 file(GLOB_RECURSE frameworkSRCS *.cpp *.hpp)
 add_library(${Target_Name} STATIC ${frameworkSRCS})
@@ -20,8 +19,8 @@ target_include_directories(${Target_Name}
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(${Target_Name} PRIVATE nghttp2::asio Boost::json fmt::fmt z)
-target_link_libraries(${Target_Name} INTERFACE nghttp2::asio Boost::json fmt::fmt z)
+target_link_libraries(${Target_Name} PRIVATE nghttp2::asio Boost::json z)
+target_link_libraries(${Target_Name} INTERFACE nghttp2::asio Boost::json z)
 
 install(TARGETS ${Target_Name} EXPORT Http2FrameworkTargets DESTINATION lib)
 install (
