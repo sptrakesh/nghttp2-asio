@@ -13,6 +13,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/asio/thread_pool.hpp>
 
 namespace spt::http2::framework
@@ -48,7 +50,8 @@ namespace spt::http2::framework
      */
     Stream( const nghttp2::asio_http2::server::request& req, const nghttp2::asio_http2::server::response& res,
       const Router<Resp>& router, std::shared_ptr<std::string> payload = nullptr ) :
-          request{ req }, req{ req }, res{ res }, router{ router }, payload{ std::move( payload ) } {}
+          request{ req }, req{ req }, res{ res }, router{ router },
+          executor{ res.executor() }, payload{ std::move( payload ) } {}
 
     ~Stream() = default;
 
@@ -112,7 +115,7 @@ namespace spt::http2::framework
     {
       auto self = this->shared_from_this();
 
-      boost::asio::post( res.executor(), [self, resp = std::move( response )]() mutable
+      boost::asio::post( executor, [self, resp = std::move( response )]() mutable
       {
         std::lock_guard lg( self->mu );
 
@@ -129,6 +132,7 @@ namespace spt::http2::framework
     const nghttp2::asio_http2::server::request& req;
     const nghttp2::asio_http2::server::response& res;
     const Router<Resp>& router;
+    boost::asio::strand<boost::asio::io_context::executor_type> executor;
     std::shared_ptr<std::string> payload{ nullptr };
     std::atomic_bool closed{ false };
   };
