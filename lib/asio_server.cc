@@ -173,7 +173,8 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
       new_connection->socket(), [this, &acceptor, &mux, new_connection](
                                     const boost::system::error_code &e) {
         if (!e) {
-          new_connection->socket().set_option(tcp::no_delay(true));
+          boost::system::error_code ignored;
+          new_connection->socket().set_option(tcp::no_delay(true), ignored);
           new_connection->start_read_deadline();
           new_connection->start();
         }
